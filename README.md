@@ -1,40 +1,43 @@
-# Restaurante — Gestión de pedidos con Java
+# Restaurante — Java, MySQL y gestión de pedidos
 
-Proyecto de portafolio en **Java 17 y Maven** que evolucionó a partir de un ejercicio académico de estructuras de datos. Actualmente demuestra un **modelo de negocio en memoria** con pedidos, catálogo, validaciones, flujo de estados y procesamiento por orden de llegada.
+Sistema de restaurante **en desarrollo por fases**. Se inició como ejercicio académico de estructuras de datos y ahora dispone de reglas de negocio, validaciones, pruebas JUnit y un repositorio JDBC para MySQL 8.
 
-> **Estado actual: aplicación de consola demostrativa.** No tiene base de datos, interfaz web ni procesamiento real de pagos. Los datos son ficticios y se pierden al terminar la ejecución.
+> **Estado:** demostración de consola con lógica en memoria y **demostración optativa de persistencia MySQL**. No es un sistema POS comercial, no hay interfaz web ni pagos o facturas reales. Se utilizan datos ficticios.
 
-## Funcionalidades implementadas
+## Funcionalidades reales
 
-- Catálogo de platillos con precio, costo y margen bruto unitario en CRC.
-- Empleados con identificador, nombre y puesto.
-- Registro de pedidos con identificador consecutivo, cliente y uno o varios detalles.
-- Subtotales y total calculados exactamente con `BigDecimal`.
-- Consulta y listado de pedidos registrados.
-- Cola de pendientes **FIFO**, que inicia primero el pedido más antiguo todavía pendiente.
-- Estados de pedido con transiciones controladas y cancelación antes de preparar.
-- Detalles inmutables y conservación de precios y totales durante las transiciones.
-- Validación de entradas, pruebas JUnit 5 y CI en GitHub Actions.
+- Catálogo de platillos con costos, precios y margen unitario en CRC.
+- Empleados con nombre, identificador y puesto.
+- Pedidos con múltiples detalles, cantidades, subtotales y total calculado con `BigDecimal`.
+- Cola FIFO de pedidos pendientes.
+- Estados: `PENDIENTE → EN_PREPARACION → LISTO → ENTREGADO`, o `PENDIENTE → CANCELADO`.
+- Registro, consulta, cancelación y actualizaciones de estado bajo reglas explícitas.
+- **Persistencia MySQL opcional:** guarda y recupera catálogo, empleados, cabeceras y detalles de pedidos.
+- Transacciones JDBC para evitar pedidos incompletos y bloqueos de fila para cambios de estado.
+- Instantáneas de precios históricos: modificar el menú no cambia el precio de un pedido previo.
+- Pruebas unitarias JUnit 5 y pruebas de integración real con MySQL en GitHub Actions.
 
-## Flujo de pedidos
+## Arquitectura actual
 
-```text
-PENDIENTE ───> EN_PREPARACION ───> LISTO ───> ENTREGADO
-     │
-     └────────> CANCELADO
-```
+| Componente | Responsabilidad |
+| --- | --- |
+| `Platillo`, `Empleado`, `DetallePedido`, `Pedido` | Modelo de dominio |
+| `EstadoPedido` | Estados del ciclo de vida |
+| `GestorPedidos` | Gestión **en memoria**, útil para aprender y probar reglas |
+| `RepositorioRestauranteJdbc` | Gestión **persistente** con JDBC y transacciones MySQL |
+| `ConexionRestaurante` | Acceso con variables de entorno, sin claves embebidas |
+| `Restaurante` | Demostración independiente solo en memoria |
+| `RestauranteMysqlDemo` | Demostración explícita que escribe y lee MySQL |
 
-Solo se puede cancelar un pedido **PENDIENTE**. Los estados `ENTREGADO` y `CANCELADO` son terminales. Un intento de transición no permitida produce un error y conserva el estado anterior.
+No utiliza Spring Boot todavía: la interfaz web/API será una fase independiente.
 
-La política y los casos límite se detallan en [docs/FLUJO_PEDIDOS.md](docs/FLUJO_PEDIDOS.md).
+## Requisitos
 
-## Tecnologías
+- JDK 17 o superior
+- Apache Maven
+- MySQL 8 para la modalidad persistente
 
-Java 17+, Maven, JUnit 5 y GitHub Actions. Los datos se gestionan en memoria usando `LinkedHashMap` y `ArrayDeque`. La aplicación de demostración conserva el uso de `Stack` para empleados.
-
-## Ejecutar y probar
-
-Requisitos: JDK 17+ y Apache Maven.
+## Ejecutar pruebas y demostración en memoria
 
 Desde la raíz del repositorio:
 
@@ -43,33 +46,40 @@ mvn -f Restaurante/pom.xml clean verify
 java -cp Restaurante/target/classes com.demo.restaurante.Restaurante
 ```
 
-El primer comando compila y ejecuta las pruebas. El segundo demuestra tres pedidos: uno entregado, uno pendiente y uno cancelado.
+Las pruebas JDBC se omiten fuera de un entorno de pruebas MySQL explícito. En GitHub Actions se ejecutan contra una base de CI aislada.
 
-La consola muestra información; el registro y las operaciones de pedidos se encuentran en la clase `GestorPedidos`, que todavía no posee un menú interactivo.
+## Ejecutar la demostración MySQL
 
-## Componentes
+1. Crea una base independiente siguiendo **[database/README.md](database/README.md)**.
+2. Importa el archivo `database/01_esquema.sql`.
+3. Configura `RESTAURANTE_DB_URL`, `RESTAURANTE_DB_USER` y `RESTAURANTE_DB_PASSWORD` **solo en tu equipo**.
+4. Ejecuta:
 
-| Clase | Responsabilidad |
+```bash
+mvn -f Restaurante/pom.xml clean verify
+mvn -f Restaurante/pom.xml exec:java -Dexec.mainClass=com.demo.restaurante.RestauranteMysqlDemo -Dexec.args=--demo
+```
+
+**Advertencia:** la demostración `--demo` inserta un pedido ficticio en la base configurada cada vez que se ejecuta. No apunta a ninguna base de otra aplicación.
+
+## Seguridad y límites
+
+- No subas contraseñas, URLs con secretos ni archivos de configuración locales.
+- No reutilices `root` ni el usuario de otros proyectos; usa una cuenta dedicada.
+- La persistencia no implementa autenticación, autorización ni acceso concurrente escalable.
+- La base de CI usa credenciales **ficticias y efímeras** para su propio contenedor.
+- `ENTREGADO` no equivale a `PAGADO`. No hay transacciones de cobro, inventario, IVA ni facturación.
+- La demostración es local y no requiere desplegar MySQL en Internet.
+
+## Fases
+
+| Fase | Resultado |
 | --- | --- |
-| `Platillo` | Datos del menú, precios y costos |
-| `Empleado` | Datos y validación de empleados |
-| `DetallePedido` | Línea con cantidad y precio congelado |
-| `Pedido` | Estado, detalles, total y transiciones válidas |
-| `EstadoPedido` | Estados del ciclo de vida |
-| `GestorPedidos` | Registro, consulta, cancelación y cola FIFO |
-| `Restaurante` | Ejemplo ejecutable en consola |
+| 1 | Correcciones iniciales, JUnit, GitHub Actions |
+| 2 | Modelo de dominio, precios y validaciones |
+| 3 | Registro y procesamiento FIFO, estados, cancelación |
+| 4 | Persistencia MySQL con JDBC y pruebas de integración |
+| 5 (pendiente) | API e interfaz web con Spring Boot |
+| 6 (pendiente) | Validación end-to-end, documentación y capturas |
 
-Consulta también [docs/DOMINIO.md](docs/DOMINIO.md) para el modelo.
-
-## Evolución por fases
-
-| Fase | Estado |
-| --- | --- |
-| 1. Corregir errores de la práctica, documentar y configurar CI | Completada |
-| 2. Introducir entidades y reglas de dominio con pruebas | Completada |
-| 3. Registrar y procesar pedidos, validar estados y cancelación | Implementada en rama de revisión |
-| 4. Persistencia y diseño de almacenamiento | Pendiente |
-| 5. API/interfaz web y operaciones de usuario | Pendiente |
-| 6. Pruebas finales, documentación visual y publicación | Pendiente |
-
-**Límites explícitos:** no existen usuarios autenticados, pagos, impuestos, inventario, facturación, sincronización multiusuario, conexión MySQL ni API HTTP. Las operaciones actuales son locales, no persistentes y no son seguras para acceso concurrente. Las fases futuras se definirán sobre esta base verificada.
+Ver [docs/DOMINIO.md](docs/DOMINIO.md), [docs/FLUJO_PEDIDOS.md](docs/FLUJO_PEDIDOS.md) y [database/README.md](database/README.md).
