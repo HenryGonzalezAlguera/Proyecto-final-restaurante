@@ -1,14 +1,12 @@
 package com.demo.restaurante;
 
 import java.math.BigDecimal;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
 import java.util.Stack;
 
 /**
- * Demostración de consola sobre las entidades del dominio.
- * Los datos son ficticios y solo existen durante esta ejecución.
+ * Demostración de consola de registro y ciclo de vida de pedidos.
+ * Los datos son ficticios y se almacenan únicamente en memoria.
  */
 public class Restaurante {
 
@@ -22,22 +20,35 @@ public class Restaurante {
         empleados.push(new Empleado(1, "Pablo Ortiz", "Cocinero"));
         empleados.push(new Empleado(2, "Luis Calderon", "Cajero"));
 
-        Queue<Pedido> pedidos = new LinkedList<>();
-        pedidos.add(new Pedido(1, 1, List.of(new DetallePedido(menu.get(0), 2))));
-        pedidos.add(new Pedido(2, 2, List.of(
+        GestorPedidos gestor = new GestorPedidos();
+        Pedido primerPedido = gestor.registrarPedido(1,
+                List.of(new DetallePedido(menu.get(0), 2)));
+        gestor.registrarPedido(2, List.of(
                 new DetallePedido(menu.get(1), 1),
                 new DetallePedido(menu.get(0), 1)
-        )));
-        pedidos.add(new Pedido(3, 3, List.of(new DetallePedido(menu.get(1), 2))));
+        ));
+        Pedido tercerPedido = gestor.registrarPedido(3,
+                List.of(new DetallePedido(menu.get(1), 2)));
+
+        // Ejemplo de cancelación antes de iniciar la preparación.
+        gestor.cancelarPedido(tercerPedido.getId());
+
+        // La cola FIFO inicia el primer pedido pendiente.
+        Pedido enPreparacion = gestor.iniciarSiguientePendiente()
+                .orElseThrow(() -> new IllegalStateException("No hay pedidos pendientes."));
+        if (enPreparacion.getId() != primerPedido.getId()) {
+            throw new IllegalStateException("Se esperaba procesar el primer pedido registrado.");
+        }
+        gestor.cambiarEstado(enPreparacion.getId(), EstadoPedido.LISTO);
+        gestor.cambiarEstado(enPreparacion.getId(), EstadoPedido.ENTREGADO);
 
         System.out.println("Empleados:");
         imprimirEmpleados(empleados);
-
         System.out.println("\nPlatillos:");
         imprimirPlatillos(menu);
-
-        System.out.println("\nPedidos pendientes:");
-        imprimirPedidos(pedidos);
+        System.out.println("\nPedidos registrados:");
+        imprimirPedidos(gestor.listarPedidos());
+        System.out.println("\nPendientes en cola: " + gestor.listarPendientes().size());
     }
 
     public static void imprimirEmpleados(Stack<Empleado> empleados) {
@@ -55,7 +66,7 @@ public class Restaurante {
         }
     }
 
-    public static void imprimirPedidos(Queue<Pedido> pedidos) {
+    public static void imprimirPedidos(List<Pedido> pedidos) {
         for (Pedido pedido : pedidos) {
             System.out.println("Pedido #" + pedido.getId() + " | Cliente: " + pedido.getClienteId()
                     + " | Estado: " + pedido.getEstado() + " | Total CRC: " + pedido.getTotal());
