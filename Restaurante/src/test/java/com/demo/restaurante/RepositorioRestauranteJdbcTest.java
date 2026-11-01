@@ -64,7 +64,6 @@ class RepositorioRestauranteJdbcTest {
     @BeforeEach
     void limpiarYCrearCatalogo() throws SQLException {
         try (Connection c = conectar(); Statement stmt = c.createStatement()) {
-            stmt.execute("DROP TRIGGER IF EXISTS test_rechazar_detalles");
             stmt.executeUpdate("DELETE FROM pedido_detalles");
             stmt.executeUpdate("DELETE FROM pedidos");
             stmt.executeUpdate("DELETE FROM platillos");
@@ -167,19 +166,20 @@ class RepositorioRestauranteJdbcTest {
 
     @Test
     void revierteCabeceraSiFallaInsercionDelDetalle() throws Exception {
+        // Restricción exclusiva de la base restaurante_ci: fuerza un fallo
+        // en el segundo INSERT, cuando la cabecera ya existe en la transacción.
         try (Connection c = conectar(); Statement stmt = c.createStatement()) {
-            stmt.execute("CREATE TRIGGER test_rechazar_detalles "
-                    + "BEFORE INSERT ON pedido_detalles FOR EACH ROW "
-                    + "SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Prueba de rollback'");
+            stmt.execute("ALTER TABLE pedido_detalles "
+                    + "ADD CONSTRAINT chk_test_rechazar CHECK (cantidad < 2)");
         }
         try {
             assertThrows(SQLException.class,
-                    () -> repositorio.registrarPedido(1, List.of(detalle(1, 1))));
+                    () -> repositorio.registrarPedido(1, List.of(detalle(1, 2))));
             assertTrue(repositorio.listarPedidos().isEmpty(),
-                    "No debe quedar una cabecera huérfana tras rollback.");
+                    "El rollback debe eliminar la cabecera insertada antes del fallo.");
         } finally {
             try (Connection c = conectar(); Statement stmt = c.createStatement()) {
-                stmt.execute("DROP TRIGGER IF EXISTS test_rechazar_detalles");
+                stmt.execute("ALTER TABLE pedido_detalles DROP CHECK chk_test_rechazar");
             }
         }
     }
