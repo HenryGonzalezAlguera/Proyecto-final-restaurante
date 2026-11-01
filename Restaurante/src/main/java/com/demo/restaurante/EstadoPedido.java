@@ -1,8 +1,7 @@
 package com.demo.restaurante;
 
 /**
- * Estados previstos para el ciclo de vida del pedido.
- * Las transiciones se implementarán y validarán en la fase 3.
+ * Estados de un pedido. Las transiciones válidas se aplican en Pedido.
  */
 public enum EstadoPedido {
     PENDIENTE,
