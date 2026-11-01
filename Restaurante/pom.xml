@@ -12,10 +12,17 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.release>17</maven.compiler.release>
         <junit.version>5.11.4</junit.version>
+        <mysql.connector.version>9.7.0</mysql.connector.version>
         <exec.mainClass>com.demo.restaurante.Restaurante</exec.mainClass>
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+            <version>${mysql.connector.version}</version>
+            <scope>runtime</scope>
+        </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>

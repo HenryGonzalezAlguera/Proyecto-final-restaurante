@@ -9,6 +9,15 @@ target/
 nbproject/private/
 *.iml
 
+# Variables y credenciales locales
+.env
+.env.*
+!.env.example
+*.local.properties
+*.local.yml
+*.local.yaml
+config.local.*
+
 # Sistema operativo
 .DS_Store
 Thumbs.db

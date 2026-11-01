@@ -4,8 +4,8 @@ import java.math.BigDecimal;
 import java.util.List;
 
 /**
- * Pedido inmutable: cada transición válida genera una nueva versión del pedido.
- * Los detalles y sus precios se conservan sin cambios durante todo su ciclo.
+ * Pedido inmutable: cada transición genera una nueva versión.
+ * Los detalles y sus precios se conservan durante todo el ciclo.
  */
 public final class Pedido {
     private final int id;
@@ -14,6 +14,10 @@ public final class Pedido {
     private final EstadoPedido estado;
 
     public Pedido(int id, int clienteId, List<DetallePedido> detalles) {
+        this(id, clienteId, detalles, EstadoPedido.PENDIENTE);
+    }
+
+    private Pedido(int id, int clienteId, List<DetallePedido> detalles, EstadoPedido estado) {
         if (id <= 0) {
             throw new IllegalArgumentException("El ID del pedido debe ser positivo.");
         }
@@ -23,25 +27,28 @@ public final class Pedido {
         if (detalles == null || detalles.isEmpty() || detalles.stream().anyMatch(d -> d == null)) {
             throw new IllegalArgumentException("El pedido debe contener detalles válidos.");
         }
+        if (estado == null) {
+            throw new IllegalArgumentException("El estado del pedido es obligatorio.");
+        }
         this.id = id;
         this.clienteId = clienteId;
         this.detalles = List.copyOf(detalles);
-        this.estado = EstadoPedido.PENDIENTE;
-    }
-
-    private Pedido(Pedido anterior, EstadoPedido siguienteEstado) {
-        this.id = anterior.id;
-        this.clienteId = anterior.clienteId;
-        this.detalles = anterior.detalles;
-        this.estado = siguienteEstado;
+        this.estado = estado;
     }
 
     /**
-     * Transiciones permitidas:
+     * Restaura el estado persistido. No efectúa transición ni sobrescribe el precio histórico.
+     */
+    static Pedido desdePersistencia(int id, int clienteId, List<DetallePedido> detalles,
+                                    EstadoPedido estado) {
+        return new Pedido(id, clienteId, detalles, estado);
+    }
+
+    /**
      * PENDIENTE -> EN_PREPARACION o CANCELADO
      * EN_PREPARACION -> LISTO
      * LISTO -> ENTREGADO
-     * ENTREGADO/CANCELADO -> ninguna (estados terminales).
+     * ENTREGADO y CANCELADO son estados terminales.
      */
     public Pedido cambiarEstado(EstadoPedido nuevoEstado) {
         if (nuevoEstado == null) {
@@ -58,7 +65,7 @@ public final class Pedido {
             throw new IllegalStateException(
                     "Transición de pedido no permitida: " + estado + " -> " + nuevoEstado);
         }
-        return new Pedido(this, nuevoEstado);
+        return new Pedido(id, clienteId, detalles, nuevoEstado);
     }
 
     public int getId() {
