@@ -15,7 +15,7 @@ jobs:
         image: mysql:8.4
         env:
           MYSQL_ROOT_PASSWORD: ci_root_only
-          MYSQL_DATABASE: restaurante_portafolio
+          MYSQL_DATABASE: restaurante_ci
           MYSQL_USER: restaurante_ci
           MYSQL_PASSWORD: ci_not_a_real_secret
         ports:
@@ -27,7 +27,7 @@ jobs:
           --health-retries=12
 
     env:
-      RESTAURANTE_TEST_DB_URL: jdbc:mysql://127.0.0.1:3306/restaurante_portafolio?connectionTimeZone=UTC
+      RESTAURANTE_TEST_DB_URL: jdbc:mysql://127.0.0.1:3306/restaurante_ci?connectionTimeZone=UTC
       RESTAURANTE_TEST_DB_USER: restaurante_ci
       RESTAURANTE_TEST_DB_PASSWORD: ci_not_a_real_secret
 
