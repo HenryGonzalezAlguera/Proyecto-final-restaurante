@@ -30,9 +30,9 @@ jobs:
       RESTAURANTE_TEST_DB_PASSWORD: ci_not_a_real_secret
     steps:
       - name: Descargar código
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Configurar Java 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: '17'
