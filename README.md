@@ -1,22 +1,32 @@
-# Restaurante — proyecto Java en evolución
+# Restaurante — Java / Maven
 
-Proyecto académico de **estructuras de datos** desarrollado en Java y Maven. La versión actual es una **demostración de consola**, no un sistema de restaurante listo para producción.
+Sistema de restaurante **en desarrollo por fases**. Nació como un ejercicio de estructuras de datos y ahora incluye un modelo de dominio con validaciones y pruebas automáticas.
 
-## Qué hace hoy
+> **Estado actual:** demostración en consola, con datos de ejemplo almacenados únicamente en memoria. No es una aplicación web ni un sistema de ventas listo para producción.
 
-- Muestra un catálogo de dos platillos de ejemplo.
-- Muestra empleados almacenados en una `Stack`.
-- Muestra tres órdenes pendientes almacenadas en una `Queue`.
-- Ejecuta una prueba automática que comprueba que los platillos no se duplican y se muestran las tres órdenes.
+## Funcionalidades verificables
 
-**Limitaciones actuales:** los datos están definidos en el código y se pierden al cerrar la aplicación. No hay registro de ventas, cobro, inventario, usuarios, interfaz web ni base de datos. Por el momento, la clase `Proveedor` representa platillos; su nombre se conserva para no realizar un cambio de dominio apresurado.
+- Catálogo de **platillos** con precios y costos en colones costarricenses (CRC).
+- Registro de **empleados** con nombre y puesto.
+- **Pedidos** con una o varias líneas, cantidades, subtotales y total.
+- Estado inicial de cada pedido: `PENDIENTE`.
+- Validaciones del dominio: identificadores positivos, textos no vacíos, montos válidos y pedidos con detalles.
+- Manejo de importes mediante `BigDecimal`, evitando errores de coma flotante.
+- Demostración de `Stack` (empleados) y `Queue` (pedidos).
+- Pruebas JUnit 5 y validación automática con GitHub Actions.
 
-## Requisitos
+**No implementado todavía:** modificar pedidos existentes, transiciones de estado, cancelaciones, cobros, inventario, base de datos, autenticación ni interfaz web.
 
-- JDK **17 o posterior**.
-- **Apache Maven**.
+## Tecnologías
 
-## Ejecutar
+- Java 17 o posterior
+- Maven
+- JUnit 5
+- GitHub Actions
+
+## Cómo ejecutar
+
+Requisitos: JDK 17+ y Maven instalados.
 
 Desde la raíz del repositorio:
 
@@ -25,28 +35,49 @@ mvn -f Restaurante/pom.xml clean verify
 java -cp Restaurante/target/classes com.demo.restaurante.Restaurante
 ```
 
-La primera instrucción compila y ejecuta las pruebas con JUnit 5. La segunda muestra el resultado en consola.
+El primer comando compila, ejecuta las pruebas y genera los archivos del proyecto. El segundo ejecuta la demostración.
 
-## Estructura
+## Modelo de dominio
+
+| Clase | Responsabilidad |
+| --- | --- |
+| `Platillo` | Nombre, precio, costo y margen bruto unitario |
+| `Empleado` | Identificador, nombre y puesto |
+| `DetallePedido` | Platillo, cantidad y subtotal; conserva una instantánea del precio |
+| `Pedido` | Cliente, detalles, total y estado inicial |
+| `EstadoPedido` | Estados previstos para la fase de gestión |
+
+Para las reglas, decisiones de modelado y próximos pasos, consulta [docs/DOMINIO.md](docs/DOMINIO.md).
+
+## Organización
 
 ```text
-Restaurante/
-├── pom.xml
-└── src/
-    ├── main/java/com/demo/restaurante/
-    │   ├── Empleado.java
-    │   ├── Orden.java
-    │   ├── Proveedor.java
-    │   └── Restaurante.java
-    └── test/java/com/demo/restaurante/
-        └── RestauranteTest.java
+.
+├── .github/workflows/java-maven.yml
+├── docs/DOMINIO.md
+├── README.md
+└── Restaurante/
+    ├── pom.xml
+    └── src/
+        ├── main/java/com/demo/restaurante/
+        │   ├── Restaurante.java
+        │   ├── Platillo.java
+        │   ├── Empleado.java
+        │   ├── Pedido.java
+        │   ├── DetallePedido.java
+        │   └── EstadoPedido.java
+        └── test/java/com/demo/restaurante/
+            ├── RestauranteTest.java
+            └── ModeloDominioTest.java
 ```
 
-## Próximas fases previstas
+## Evolución
 
-1. Definir correctamente las entidades del dominio: platillo, empleado y pedido.
-2. Incorporar operaciones de negocio reales: crear pedidos, calcular totales y gestionar estados.
-3. Añadir persistencia y una interfaz de usuario, una vez definido el alcance de la aplicación.
-4. Ampliar las pruebas, documentación y capturas para el portafolio.
+- **Fase 1:** corregir errores de la demostración original, añadir README, JUnit y CI.
+- **Fase 2:** definir entidades, validaciones, cantidades, precios y totales.
+- **Fase 3 (pendiente):** gestionar ciclo de vida de pedidos, asignación de trabajo y operaciones de cobro.
+- **Fase 4 (pendiente):** definir e implementar persistencia.
+- **Fase 5 (pendiente):** desarrollar interfaz para el usuario.
+- **Fase 6 (pendiente):** pruebas end-to-end, documentación visual y presentación de portafolio.
 
-> La preparación de portafolio busca mostrar una evolución técnica comprobable, sin presentar funcionalidades todavía inexistentes.
+El propósito es demostrar evolución técnica sin atribuir funcionalidades que todavía no existen.
