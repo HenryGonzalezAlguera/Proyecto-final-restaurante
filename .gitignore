@@ -1,0 +1,14 @@
+# Maven / Java
+target/
+*.class
+*.log
+
+# Editores e IDE
+.idea/
+.vscode/
+nbproject/private/
+*.iml
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
