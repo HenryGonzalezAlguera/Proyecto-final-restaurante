@@ -1,48 +1,35 @@
-# Fase 2 — Modelo de dominio de Restaurante
+# Modelo de dominio de Restaurante
 
-## Alcance
+## Objetivo
 
-Esta fase transforma la demostración inicial en un modelo de negocio **en memoria**, sin introducir todavía Spring Boot, base de datos ni interfaces gráficas. Las estructuras `Stack` y `Queue` siguen apareciendo en `Restaurante.main` para reflejar el origen académico.
+Proyecto demostrativo de gestión de restaurante con reglas de negocio en memoria. La fase 2 definió las entidades y la fase 3 añadió operaciones de pedidos y reglas del ciclo de vida.
 
-## Entidades y responsabilidades
+## Entidades
 
-- **Platillo:** `id`, `nombre`, `costoIngredientes`, `precio`; expone margen bruto unitario. Sustituye el uso incorrecto de la clase anterior `Proveedor` para representar comidas.
-- **Empleado:** `id`, `nombre`, `puesto` con validaciones básicas.
-- **DetallePedido:** instantánea del ID, nombre y precio unitario del platillo más cantidad. `subtotal = precioUnitario × cantidad`.
-- **Pedido:** `id`, `clienteId`, lista no vacía de detalles y estado inicial `PENDIENTE`. `total = suma(subtotales)`. Sustituye la antigua `Orden`, que solo registraba el identificador del cliente.
-- **EstadoPedido:** `PENDIENTE`, `EN_PREPARACION`, `LISTO`, `ENTREGADO`, `CANCELADO`. Únicamente se asigna el estado inicial en esta fase; las transiciones deben implementar reglas en fase 3.
+- **Platillo:** `id`, `nombre`, `costoIngredientes` y `precio`. Calcula margen bruto unitario.
+- **Empleado:** `id`, `nombre` y `puesto`, con validaciones.
+- **DetallePedido:** captura ID, nombre y precio del platillo junto con la cantidad. El subtotal es `precioUnitario × cantidad`.
+- **Pedido:** ID, cliente, detalles no vacíos, total y estado; inicia en `PENDIENTE`. Cada transición válida devuelve una nueva instancia.
+- **EstadoPedido:** `PENDIENTE`, `EN_PREPARACION`, `LISTO`, `ENTREGADO` y `CANCELADO`.
+- **GestorPedidos:** registro secuencial, consulta, listado, procesamiento FIFO, cambios de estado y cancelación.
 
-## Reglas de validación implementadas
+## Reglas de validación
 
-1. Todos los identificadores de dominio deben ser enteros positivos.
-2. Los nombres y puestos no pueden ser nulos ni blancos.
-3. El precio debe ser mayor que cero; el costo de ingredientes puede ser cero, pero no negativo.
-4. Los montos usan `BigDecimal` y como máximo dos decimales, sin redondeos implícitos.
-5. La cantidad de cada detalle debe ser positiva.
-6. Todo pedido debe tener al menos un detalle válido.
-7. Los pedidos guardan una copia no modificable de la lista de detalles.
-8. El importe del detalle se congela al crear el detalle: una futura actualización de catálogo no debe cambiar el precio histórico de un pedido.
+1. Los identificadores de entidades deben ser positivos.
+2. Nombres y puestos no pueden estar vacíos.
+3. El precio debe ser positivo y el costo de ingredientes no negativo.
+4. Los montos son `BigDecimal` con dos decimales, sin redondeo implícito.
+5. Las cantidades de cada detalle deben ser positivas.
+6. Los pedidos deben tener al menos un detalle válido.
+7. Cada pedido conserva una copia no modificable de sus detalles.
+8. El precio de un detalle queda capturado al crearse; una modificación posterior del catálogo no debe afectar pedidos existentes.
+9. Los cambios de estado deben respetar el flujo documentado y no modifican el total.
+10. Solo los pedidos pendientes permanecen en la cola FIFO.
 
-Los importes de la demostración se expresan en **CRC**. No hay cálculo de IVA, promociones, cobros ni pagos todavía: el total es el subtotal comercial de los platillos.
+## Ciclo de vida
 
-## Ejemplo de datos demostrativos
+Consulta [FLUJO_PEDIDOS.md](FLUJO_PEDIDOS.md) para transiciones, errores y ejemplos.
 
-| Pedido | Detalles | Total CRC | Estado |
-| --- | --- | ---: | --- |
-| 1 | 2 × Arroz con Pollo (₡4 000) | ₡8 000 | PENDIENTE |
-| 2 | 1 × La Carnita Roja (₡6 000), 1 × Arroz con Pollo (₡4 000) | ₡10 000 | PENDIENTE |
-| 3 | 2 × La Carnita Roja (₡6 000) | ₡12 000 | PENDIENTE |
+## Limitaciones
 
-Todos los datos son ficticios; no se almacenan entre ejecuciones.
-
-## Fuera del alcance de fase 2
-
-- Alta, modificación y cancelación interactivas de pedidos.
-- Reglas de transiciones y responsables de preparación.
-- Persistencia y concurrencia.
-- Cobros, facturación e impuestos.
-- API, interfaz web o móvil.
-
-## Próxima fase
-
-Crear operaciones explícitas para registrar pedidos y actualizar su estado con reglas de transición. Probar intentos inválidos, cancelaciones y consistencia del cálculo. No agregar persistencia ni pagos antes de definir requisitos.
+Esta fase es una simulación en memoria. No incluye autenticación, cobros, impuestos, persistencia, multiusuario, API web ni operaciones de concurrencia.
