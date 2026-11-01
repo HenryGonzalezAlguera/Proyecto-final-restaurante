@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta name="description" content="Demostración local de gestión de pedidos de Restaurante."/>
+    <title>Restaurante | Gestión de pedidos</title>
+    <link rel="stylesheet" th:href="@{/css/restaurante.css}" href="/css/restaurante.css"/>
+</head>
+<body>
+<div class="app-shell">
+    <aside class="sidebar">
+        <a class="brand" th:href="@{/pedidos}" href="/pedidos">
+            <span class="brand-icon">R</span>
+            <span>Restaurante<small>Panel de operaciones</small></span>
+        </a>
+        <p class="section-label">ADMINISTRACIÓN</p>
+        <nav aria-label="Navegación principal">
+            <a class="nav-item active" th:href="@{/pedidos}" href="/pedidos">▦ <span>Pedidos</span></a>
+            <a class="nav-item" th:href="@{/api/platillos}" href="/api/platillos">≡ <span>Catálogo (API)</span></a>
+            <a class="nav-item" th:href="@{/api/pedidos}" href="/api/pedidos">↗ <span>Pedidos (API)</span></a>
+        </nav>
+        <div class="side-footer">
+            <span class="status-dot"></span> Demo local · Java + Spring Boot
+            <small>Uso educativo. Sin pagos ni datos reales.</small>
+        </div>
+    </aside>
+    <main class="main">
+        <header class="topbar">
+            <div class="crumb">Operaciones <span>/</span> Pedidos</div>
+            <span class="environment">ENTORNO LOCAL</span>
+        </header>
+        <div class="content">
+            <div class="page-heading">
+                <div>
+                    <p class="eyebrow">GESTIÓN DEL RESTAURANTE</p>
+                    <h1>Panel de pedidos</h1>
+                    <p class="subtitle">Organiza, prepara y da seguimiento a los pedidos desde un mismo lugar.</p>
+                </div>
+                <span class="live-indicator"><span></span> Vista de demostración</span>
+            </div>
+            <div role="alert" class="notice error" th:if="${errorConexion}" th:text="${errorConexion}"></div>
+            <div role="status" class="notice success" th:if="${mensaje}" th:text="${mensaje}"></div>
+            <div role="alert" class="notice error" th:if="${error}" th:text="${error}"></div>
+            <section class="stats" aria-label="Resumen de pedidos">
+                <div class="stat"><span class="stat-label">Pedidos registrados</span><strong th:text="${pedidos.size()}">0</strong><small>Registros en MySQL</small></div>
+                <div class="stat"><span class="stat-label">Pendientes</span><strong th:text="${pendientes}">0</strong><small>En espera de preparación</small></div>
+                <div class="stat"><span class="stat-label">Entregados</span><strong th:text="${entregados}">0</strong><small>Pedidos finalizados</small></div>
+            </section>
+            <div class="dashboard-grid">
+                <section class="panel create-panel">
+                    <div class="panel-heading">
+                        <div><span class="panel-kicker">NUEVA ORDEN</span><h2>Registrar pedido</h2></div>
+                        <span class="panel-symbol">＋</span>
+                    </div>
+                    <p class="panel-desc">Selecciona un platillo del catálogo y crea un pedido.</p>
+                    <form th:action="@{/pedidos}" action="/pedidos" method="post">
+                        <label for="clienteId">ID del cliente</label>
+                        <input id="clienteId" name="clienteId" type="number" min="1" step="1" required placeholder="Ej. 101"/>
+                        <label for="platilloId">Platillo</label>
+                        <select id="platilloId" name="platilloId" required>
+                            <option value="" selected disabled>Seleccionar del menú</option>
+                            <option th:each="platillo : ${platillos}" th:value="${platillo.id}"
+                                    th:text="${platillo.nombre + ' · ₡' + platillo.precio}">Platillo</option>
+                        </select>
+                        <label for="cantidad">Cantidad</label>
+                        <input id="cantidad" name="cantidad" type="number" min="1" step="1" value="1" required/>
+                        <button class="btn btn-primary" type="submit" th:disabled="${platillos.isEmpty()}">Registrar pedido <span>→</span></button>
+                    </form>
+                    <p class="form-footnote">El precio se conserva al registrar el pedido.</p>
+                </section>
+                <section class="panel orders-panel">
+                    <div class="panel-heading orders-heading">
+                        <div><span class="panel-kicker">SEGUIMIENTO</span><h2>Órdenes recientes</h2></div>
+                        <form th:action="@{/pedidos/siguiente}" action="/pedidos/siguiente" method="post">
+                            <button class="btn btn-outline" type="submit" th:disabled="${pendientes == 0}">Preparar siguiente ↗</button>
+                        </form>
+                    </div>
+                    <div class="table-scroller">
+                        <table>
+                            <thead><tr><th>Pedido</th><th>Cliente</th><th>Importe</th><th>Estado</th><th>Acciones</th></tr></thead>
+                            <tbody>
+                            <tr th:each="pedido : ${pedidos}">
+                                <td class="order-id" th:text="${'#' + pedido.id}">#1</td>
+                                <td th:text="${pedido.clienteId}">1</td>
+                                <td class="money" th:text="${'₡' + pedido.total}">₡0.00</td>
+                                <td><span class="state" th:classappend="${' status-' + pedido.estado.name().toLowerCase()}" th:text="${pedido.estado.name().replace('_', ' ')}">PENDIENTE</span></td>
+                                <td>
+                                    <div class="actions">
+                                        <form th:if="${pedido.estado.name() == 'PENDIENTE'}" th:action="@{/pedidos/{id}/estado(id=${pedido.id})}" method="post">
+                                            <input type="hidden" name="estado" value="EN_PREPARACION"/>
+                                            <button type="submit" class="mini-btn">Preparar</button>
+                                        </form>
+                                        <form th:if="${pedido.estado.name() == 'PENDIENTE'}" th:action="@{/pedidos/{id}/estado(id=${pedido.id})}" method="post">
+                                            <input type="hidden" name="estado" value="CANCELADO"/>
+                                            <button type="submit" class="mini-btn danger">Cancelar</button>
+                                        </form>
+                                        <form th:if="${pedido.estado.name() == 'EN_PREPARACION'}" th:action="@{/pedidos/{id}/estado(id=${pedido.id})}" method="post">
+                                            <input type="hidden" name="estado" value="LISTO"/>
+                                            <button type="submit" class="mini-btn">Marcar listo</button>
+                                        </form>
+                                        <form th:if="${pedido.estado.name() == 'LISTO'}" th:action="@{/pedidos/{id}/estado(id=${pedido.id})}" method="post">
+                                            <input type="hidden" name="estado" value="ENTREGADO"/>
+                                            <button type="submit" class="mini-btn">Entregar</button>
+                                        </form>
+                                        <span class="done" th:if="${pedido.estado.name() == 'ENTREGADO' or pedido.estado.name() == 'CANCELADO'}">Finalizado</span>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr th:if="${pedidos.isEmpty()}"><td colspan="5" class="empty">Todavía no hay pedidos registrados. Crea el primero desde el formulario.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="table-footer">Los pedidos pendientes se procesan por orden de llegada (FIFO).</p>
+                </section>
+            </div>
+            <footer class="main-footer">Restaurante · Portafolio Java · Datos locales de demostración · Sin autenticación</footer>
+        </div>
+    </main>
+</div>
+</body>
+</html>

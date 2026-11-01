@@ -9,7 +9,6 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-
     services:
       mysql:
         image: mysql:8.4
@@ -25,23 +24,19 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=12
-
     env:
       RESTAURANTE_TEST_DB_URL: jdbc:mysql://127.0.0.1:3306/restaurante_ci?connectionTimeZone=UTC
       RESTAURANTE_TEST_DB_USER: restaurante_ci
       RESTAURANTE_TEST_DB_PASSWORD: ci_not_a_real_secret
-
     steps:
       - name: Descargar código
         uses: actions/checkout@v4
-
       - name: Configurar Java 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
           cache: maven
-          cache-dependency-path: Restaurante/pom.xml
-
-      - name: Compilar y ejecutar pruebas unitarias e integración MySQL
-        run: mvn -B -ntp -f Restaurante/pom.xml clean verify
+          cache-dependency-path: '**/pom.xml'
+      - name: Construir ambos módulos y ejecutar pruebas Java, JDBC y HTTP
+        run: mvn -B -ntp -f pom.xml clean verify

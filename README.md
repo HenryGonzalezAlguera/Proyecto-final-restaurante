@@ -1,85 +1,118 @@
-# Restaurante — Java, MySQL y gestión de pedidos
+# Restaurante — Java, Spring Boot y MySQL
 
-Sistema de restaurante **en desarrollo por fases**. Se inició como ejercicio académico de estructuras de datos y ahora dispone de reglas de negocio, validaciones, pruebas JUnit y un repositorio JDBC para MySQL 8.
+Aplicación de demostración para portafolio que evolucionó desde una práctica de estructuras de datos hasta una **interfaz web de pedidos** y **API REST local**, reutilizando el modelo de dominio original y la persistencia JDBC.
 
-> **Estado:** demostración de consola con lógica en memoria y **demostración optativa de persistencia MySQL**. No es un sistema POS comercial, no hay interfaz web ni pagos o facturas reales. Se utilizan datos ficticios.
+> **Estado: prototipo local.** Sin autenticación, pagos, facturación ni datos reales. Por seguridad el servidor web se enlaza a `127.0.0.1` de forma predeterminada. **No exponer a Internet** sin incorporar seguridad, permisos y pruebas adicionales.
 
-## Funcionalidades reales
+## Qué permite hacer
 
-- Catálogo de platillos con costos, precios y margen unitario en CRC.
-- Empleados con nombre, identificador y puesto.
-- Pedidos con múltiples detalles, cantidades, subtotales y total calculado con `BigDecimal`.
-- Cola FIFO de pedidos pendientes.
-- Estados: `PENDIENTE → EN_PREPARACION → LISTO → ENTREGADO`, o `PENDIENTE → CANCELADO`.
-- Registro, consulta, cancelación y actualizaciones de estado bajo reglas explícitas.
-- **Persistencia MySQL opcional:** guarda y recupera catálogo, empleados, cabeceras y detalles de pedidos.
-- Transacciones JDBC para evitar pedidos incompletos y bloqueos de fila para cambios de estado.
-- Instantáneas de precios históricos: modificar el menú no cambia el precio de un pedido previo.
-- Pruebas unitarias JUnit 5 y pruebas de integración real con MySQL en GitHub Actions.
+- Visualizar el catálogo de platillos, precios y pedidos.
+- Registrar un pedido desde el navegador: cliente, platillo y cantidad.
+- Consultar estado, precio total y número de pedidos pendientes.
+- Procesar pendientes **FIFO**, marcar platos listos y entregar.
+- Cancelar pedidos que aún no están en preparación.
+- Consultar y gestionar pedidos mediante una API HTTP JSON local.
+- Conservar los precios históricos y la integridad de transacciones en MySQL.
 
-## Arquitectura actual
+Las reglas de validación y transición se implementan una sola vez en el módulo Java y se **reutilizan** desde Spring Boot.
 
-| Componente | Responsabilidad |
+## Arquitectura
+
+```text
+.
+├── pom.xml                       # Reactor Maven: dos módulos
+├── Restaurante/                  # Dominio, gestor Java, JDBC y pruebas
+├── RestauranteWeb/               # Spring Boot MVC, Thymeleaf y API JSON
+│   ├── pom.xml
+│   ├── src/main/java/com/demo/restaurante/web/
+│   ├── src/main/resources/templates/pedidos.html
+│   ├── src/main/resources/static/css/restaurante.css
+│   └── src/test/java/com/demo/restaurante/web/
+├── database/                     # Esquema SQL y guía XAMPP
+└── docs/
+```
+
+| Tecnología | Uso |
 | --- | --- |
-| `Platillo`, `Empleado`, `DetallePedido`, `Pedido` | Modelo de dominio |
-| `EstadoPedido` | Estados del ciclo de vida |
-| `GestorPedidos` | Gestión **en memoria**, útil para aprender y probar reglas |
-| `RepositorioRestauranteJdbc` | Gestión **persistente** con JDBC y transacciones MySQL |
-| `ConexionRestaurante` | Acceso con variables de entorno, sin claves embebidas |
-| `Restaurante` | Demostración independiente solo en memoria |
-| `RestauranteMysqlDemo` | Demostración explícita que escribe y lee MySQL |
+| Java 17 | Modelo y lógica de negocio |
+| Spring Boot 4.1.2 | Aplicación web y API REST |
+| Spring MVC y Thymeleaf | Controladores y vistas HTML |
+| MySQL 8 + JDBC | Persistencia de datos |
+| Maven | Compilación de los dos módulos |
+| JUnit 5, MockMvc y GitHub Actions | Pruebas unitarias, SQL y HTTP |
 
-No utiliza Spring Boot todavía: la interfaz web/API será una fase independiente.
+## Compilar y probar
 
-## Requisitos
-
-- JDK 17 o superior
-- Apache Maven
-- MySQL 8 para la modalidad persistente
-
-## Ejecutar pruebas y demostración en memoria
-
-Desde la raíz del repositorio:
+Requisitos: Java 17+, Maven 3.6.3+ y, para la modalidad persistente, MySQL 8.
 
 ```bash
-mvn -f Restaurante/pom.xml clean verify
+mvn -f pom.xml clean verify
+```
+
+La comprobación de MySQL se ejecuta automáticamente en CI contra un contenedor aislado; localmente se omite si no se definen las variables `RESTAURANTE_TEST_DB_*`.
+
+## Ejecutar la aplicación web en XAMPP
+
+1. Abre [database/README.md](database/README.md) e importa `database/01_esquema.sql` en una base **independiente** llamada `restaurante_portafolio`.
+2. Importa también `database/02_datos_demo.sql` para disponer de cinco platillos y tres empleados ficticios (sin sobrescribir registros existentes).
+3. Crea un usuario MySQL específico `restaurante_app` con acceso a esa base; no reutilices las contraseñas de otros proyectos.
+4. Configura las variables `RESTAURANTE_DB_URL`, `RESTAURANTE_DB_USER`, `RESTAURANTE_DB_PASSWORD` solo en tu máquina, como indica la guía.
+5. Desde la raíz ejecuta:
+
+```bash
+mvn -f pom.xml clean package
+java -jar RestauranteWeb/target/restaurante-web-1.0-SNAPSHOT.jar
+```
+
+6. Abre **http://127.0.0.1:8085/pedidos**.
+
+La interfaz informa si faltan credenciales o esquema. La aplicación **no crea automáticamente la base ni las tablas**. La inicialización de catálogo debe hacerse en MySQL o con la demostración JDBC explicada en `database/README.md`. Para el módulo original de consola:
+
+```bash
 java -cp Restaurante/target/classes com.demo.restaurante.Restaurante
 ```
 
-Las pruebas JDBC se omiten fuera de un entorno de pruebas MySQL explícito. En GitHub Actions se ejecutan contra una base de CI aislada.
+## API REST de demostración
 
-## Ejecutar la demostración MySQL
+| Método | Ruta | Acción |
+| --- | --- | --- |
+| GET | `/api/platillos` | Catálogo |
+| GET | `/api/pedidos` | Lista de pedidos |
+| GET | `/api/pedidos/{id}` | Consulta de pedido |
+| POST | `/api/pedidos` | Crear pedido |
+| POST | `/api/pedidos/{id}/estado` | Avanzar estado |
+| POST | `/api/pedidos/siguiente` | Preparar siguiente (FIFO) |
 
-1. Crea una base independiente siguiendo **[database/README.md](database/README.md)**.
-2. Importa el archivo `database/01_esquema.sql`.
-3. Configura `RESTAURANTE_DB_URL`, `RESTAURANTE_DB_USER` y `RESTAURANTE_DB_PASSWORD` **solo en tu equipo**.
-4. Ejecuta:
+Cuerpo para crear un pedido:
 
-```bash
-mvn -f Restaurante/pom.xml clean verify
-mvn -f Restaurante/pom.xml exec:java -Dexec.mainClass=com.demo.restaurante.RestauranteMysqlDemo -Dexec.args=--demo
+```json
+{"clienteId": 1, "platilloId": 1, "cantidad": 2}
 ```
 
-**Advertencia:** la demostración `--demo` inserta un pedido ficticio en la base configurada cada vez que se ejecuta. No apunta a ninguna base de otra aplicación.
+Cuerpo para cambiar estado:
 
-## Seguridad y límites
+```json
+{"estado": "LISTO"}
+```
 
-- No subas contraseñas, URLs con secretos ni archivos de configuración locales.
-- No reutilices `root` ni el usuario de otros proyectos; usa una cuenta dedicada.
-- La persistencia no implementa autenticación, autorización ni acceso concurrente escalable.
-- La base de CI usa credenciales **ficticias y efímeras** para su propio contenedor.
-- `ENTREGADO` no equivale a `PAGADO`. No hay transacciones de cobro, inventario, IVA ni facturación.
-- La demostración es local y no requiere desplegar MySQL en Internet.
+No todos los cambios de estado están permitidos; consulta [docs/FLUJO_PEDIDOS.md](docs/FLUJO_PEDIDOS.md).
 
-## Fases
+## Limitaciones y seguridad
 
-| Fase | Resultado |
-| --- | --- |
-| 1 | Correcciones iniciales, JUnit, GitHub Actions |
-| 2 | Modelo de dominio, precios y validaciones |
-| 3 | Registro y procesamiento FIFO, estados, cancelación |
-| 4 | Persistencia MySQL con JDBC y pruebas de integración |
-| 5 (pendiente) | API e interfaz web con Spring Boot |
-| 6 (pendiente) | Validación end-to-end, documentación y capturas |
+- Prototipo local **sin sistema de acceso** ni protección CSRF: no desplegarlo en un servidor público.
+- El formulario web crea **un tipo de platillo por pedido**; la lógica Java y la API de repositorio ya admiten múltiples detalles y se ampliará la interfaz posteriormente.
+- No hay caja, pagos, IVA, inventario, sesiones de usuario, facturación ni reservas.
+- No se guardan credenciales reales en GitHub.
+- La demostración de consola y el componente web son independientes: uno utiliza datos ficticios en memoria y el otro consulta MySQL.
+- Las pruebas HTTP usan servicios simulados y las de persistencia usan una base MySQL temporal en GitHub Actions.
 
-Ver [docs/DOMINIO.md](docs/DOMINIO.md), [docs/FLUJO_PEDIDOS.md](docs/FLUJO_PEDIDOS.md) y [database/README.md](database/README.md).
+## Historia de evolución
+
+1. Correcciones del ejercicio inicial, documentación y CI.
+2. Modelo del dominio y validaciones.
+3. Ciclo de vida de pedidos y FIFO.
+4. Persistencia transaccional con JDBC y pruebas de integración.
+5. Aplicación web y API con Spring Boot (**fase actual**).
+6. End-to-end, control de acceso, mejoras de interfaz y presentación final (**pendiente**).
+
+Para empezar consulta también [docs/WEB_SPRING_BOOT.md](docs/WEB_SPRING_BOOT.md) y [database/README.md](database/README.md).
