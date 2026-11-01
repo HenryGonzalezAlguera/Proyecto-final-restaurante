@@ -54,16 +54,17 @@ La comprobación de MySQL se ejecuta automáticamente en CI contra un contenedor
 ## Ejecutar la aplicación web en XAMPP
 
 1. Abre [database/README.md](database/README.md) e importa `database/01_esquema.sql` en una base **independiente** llamada `restaurante_portafolio`.
-2. Crea un usuario MySQL específico `restaurante_app` con acceso a esa base; no reutilices las contraseñas de otros proyectos.
-3. Configura las variables `RESTAURANTE_DB_URL`, `RESTAURANTE_DB_USER`, `RESTAURANTE_DB_PASSWORD` solo en tu máquina, como indica la guía.
-4. Desde la raíz ejecuta:
+2. Importa también `database/02_datos_demo.sql` para disponer de cinco platillos y tres empleados ficticios (sin sobrescribir registros existentes).
+3. Crea un usuario MySQL específico `restaurante_app` con acceso a esa base; no reutilices las contraseñas de otros proyectos.
+4. Configura las variables `RESTAURANTE_DB_URL`, `RESTAURANTE_DB_USER`, `RESTAURANTE_DB_PASSWORD` solo en tu máquina, como indica la guía.
+5. Desde la raíz ejecuta:
 
 ```bash
 mvn -f pom.xml clean package
 java -jar RestauranteWeb/target/restaurante-web-1.0-SNAPSHOT.jar
 ```
 
-5. Abre **http://127.0.0.1:8085/pedidos**.
+6. Abre **http://127.0.0.1:8085/pedidos**.
 
 La interfaz informa si faltan credenciales o esquema. La aplicación **no crea automáticamente la base ni las tablas**. La inicialización de catálogo debe hacerse en MySQL o con la demostración JDBC explicada en `database/README.md`. Para el módulo original de consola:
 
