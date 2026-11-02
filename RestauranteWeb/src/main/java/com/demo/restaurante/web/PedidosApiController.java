@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * API REST local para demostración y pruebas; sin autenticación ni despliegue público.
+ * API REST local con sesión y CSRF; no está preparada para despliegue público.
  */
 @RestController
 @RequestMapping("/api")
