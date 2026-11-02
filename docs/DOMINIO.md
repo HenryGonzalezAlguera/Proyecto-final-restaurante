@@ -1,5 +1,7 @@
 # Modelo de dominio de Restaurante
 
+> **Alcance del documento:** describe el modelo Java original de consola. La versión web actual **sí** cuenta con MySQL, Spring Boot, API REST y autenticación. Consulta [ARQUITECTURA.md](ARQUITECTURA.md) para el sistema completo.
+
 ## Objetivo
 
 Proyecto demostrativo de gestión de restaurante con reglas de negocio en memoria. La fase 2 definió las entidades y la fase 3 añadió operaciones de pedidos y reglas del ciclo de vida.
