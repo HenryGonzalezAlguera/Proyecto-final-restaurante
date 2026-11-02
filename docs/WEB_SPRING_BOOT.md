@@ -70,3 +70,5 @@ Las pantallas usan el fragmento Thymeleaf `templates/fragmentos/navegacion.html`
 - Pruebas: MockMvc sobre formularios y MySQL real sobre altas, edición, desactivación, reactivación y conservación del historial.
 
 **Restricción crítica:** los formularios aún no tienen autenticación, roles ni defensa CSRF. Mantener en `127.0.0.1` y no publicar el panel en Internet. La seguridad debe abordarse en una fase posterior antes de producción.
+
+La migración 03 retira y recrea temporalmente la clave foránea `fk_detalles_platillo`. Antes de aplicarla en una base que ya contiene pedidos, realizar un respaldo y detener el servidor local.
