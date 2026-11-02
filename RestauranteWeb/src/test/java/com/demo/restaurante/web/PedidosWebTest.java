@@ -34,6 +34,9 @@ class PedidosWebTest {
     @MockitoBean
     ServicioRestauranteWeb servicio;
 
+    @MockitoBean
+    AuditoriaRestauranteService auditoria;
+
     private Platillo platillo() {
         return new Platillo(1, "Casado", new BigDecimal("2000"), new BigDecimal("3500"));
     }
