@@ -90,4 +90,88 @@ class AdministracionEmpleadosMysqlTest {
             ps.executeUpdate();
         }
     }
+    @Test
+    void desactivacionReactivacionYClaveReemplazadaPersistenEnMysql() throws Exception {
+        String claveAnterior = "ClaveInicialParaCI2026!";
+        String claveNueva = "NuevaClaveSeguraCI2026!";
+        try (Connection conexion = ConexionRestaurante.desdeEntorno()) {
+            exigirBaseDePruebas(conexion);
+            borrarUsuario(conexion);
+            try {
+                servicio.crearEmpleado(USUARIO_TEST, claveAnterior);
+                int id = servicio.listarEmpleados().stream()
+                        .filter(e -> e.usuario().equals(USUARIO_TEST))
+                        .findFirst().orElseThrow().id();
+
+                servicio.cambiarEstadoEmpleado(id, false);
+                assertFalse(servicio.listarEmpleados().stream()
+                        .filter(e -> e.id() == id).findFirst().orElseThrow().activo());
+
+                servicio.restablecerClaveEmpleado(id, claveNueva, claveNueva);
+                try (PreparedStatement ps = conexion.prepareStatement(
+                        "SELECT password_hash, activo FROM usuarios WHERE id=? AND rol='EMPLEADO'")) {
+                    ps.setInt(1, id);
+                    try (ResultSet rs = ps.executeQuery()) {
+                        assertTrue(rs.next());
+                        assertTrue(encoder.matches(claveNueva, rs.getString("password_hash")));
+                        assertFalse(encoder.matches(claveAnterior, rs.getString("password_hash")));
+                        assertFalse(rs.getBoolean("activo"));
+                    }
+                }
+                servicio.cambiarEstadoEmpleado(id, true);
+                assertTrue(servicio.listarEmpleados().stream()
+                        .filter(e -> e.id() == id).findFirst().orElseThrow().activo());
+                assertThrows(IllegalArgumentException.class,
+                        () -> servicio.cambiarEstadoEmpleado(id, true));
+            } finally {
+                borrarUsuario(conexion);
+            }
+        }
+    }
+
+    @Test
+    void operacionesPorIdNuncaModificanCuentasAdmin() throws Exception {
+        String admin = "admin_resguardo_ci";
+        int adminId;
+        try (Connection conexion = ConexionRestaurante.desdeEntorno()) {
+            exigirBaseDePruebas(conexion);
+            try (PreparedStatement ps = conexion.prepareStatement(
+                    "INSERT INTO usuarios(usuario,password_hash,rol,activo) "
+                            + "VALUES (?, ?, 'ADMIN', TRUE) ON DUPLICATE KEY UPDATE activo=TRUE")) {
+                ps.setString(1, admin);
+                ps.setString(2, encoder.encode("ClaveAdminTemporalCI2026!"));
+                ps.executeUpdate();
+            }
+            try (PreparedStatement ps = conexion.prepareStatement(
+                    "SELECT id FROM usuarios WHERE usuario=?")) {
+                ps.setString(1, admin);
+                try (ResultSet rs = ps.executeQuery()) {
+                    assertTrue(rs.next());
+                    adminId = rs.getInt(1);
+                }
+            }
+            try {
+                assertThrows(IllegalArgumentException.class,
+                        () -> servicio.cambiarEstadoEmpleado(adminId, false));
+                assertThrows(IllegalArgumentException.class,
+                        () -> servicio.restablecerClaveEmpleado(adminId,
+                                "OtraClaveTemporalCI2026!", "OtraClaveTemporalCI2026!"));
+                try (PreparedStatement ps = conexion.prepareStatement(
+                        "SELECT activo FROM usuarios WHERE id=? AND rol='ADMIN'")) {
+                    ps.setInt(1, adminId);
+                    try (ResultSet rs = ps.executeQuery()) {
+                        assertTrue(rs.next());
+                        assertTrue(rs.getBoolean("activo"));
+                    }
+                }
+            } finally {
+                try (PreparedStatement ps = conexion.prepareStatement(
+                        "DELETE FROM usuarios WHERE usuario=? AND rol='ADMIN'")) {
+                    ps.setString(1, admin);
+                    ps.executeUpdate();
+                }
+            }
+        }
+    }
+
 }
