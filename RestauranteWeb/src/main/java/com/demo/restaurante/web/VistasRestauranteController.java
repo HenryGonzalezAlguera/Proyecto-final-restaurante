@@ -29,10 +29,17 @@ public class VistasRestauranteController {
     @GetMapping("/catalogo")
     public String catalogo(Model modelo) {
         try {
-            var platillos = servicio.listarPlatillos();
-            modelo.addAttribute("platillos", platillos);
+            var registros = servicio.listarCatalogoAdministracion();
+            modelo.addAttribute("platillos", registros.stream()
+                    .filter(com.demo.restaurante.RegistroPlatillo::activo)
+                    .map(com.demo.restaurante.RegistroPlatillo::platillo)
+                    .toList());
+            modelo.addAttribute("catalogoAdmin", registros);
+            modelo.addAttribute("inactivos", registros.stream().filter(r -> !r.activo()).count());
         } catch (SQLException | IllegalStateException ex) {
             modelo.addAttribute("platillos", List.of());
+            modelo.addAttribute("catalogoAdmin", List.of());
+            modelo.addAttribute("inactivos", 0L);
             modelo.addAttribute("errorConexion", ERROR_CONEXION);
         }
         return "catalogo";

@@ -45,6 +45,116 @@ public final class RepositorioRestauranteJdbc {
         }
     }
 
+    /**
+     * Crea un platillo y asigna el identificador desde MySQL.
+     * Requiere la migración 03: id AUTO_INCREMENT en la tabla platillos.
+     */
+    public Platillo crearPlatillo(String nombre, BigDecimal costo, BigDecimal precio)
+            throws SQLException {
+        Platillo datos = new Platillo(1, nombre, costo, precio);
+        String sql = "INSERT INTO platillos(nombre, costo_ingredientes, precio, activo) "
+                + "VALUES (?, ?, ?, TRUE)";
+        try (Connection conexion = fabrica.abrir();
+             PreparedStatement ps = conexion.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            ps.setString(1, datos.getNombre());
+            ps.setBigDecimal(2, datos.getCostoIngredientes());
+            ps.setBigDecimal(3, datos.getPrecio());
+            if (ps.executeUpdate() != 1) {
+                throw new SQLException("No se insertó el platillo.");
+            }
+            try (ResultSet keys = ps.getGeneratedKeys()) {
+                if (!keys.next()) {
+                    throw new SQLException("MySQL no devolvió el identificador del platillo.");
+                }
+                return new Platillo(keys.getInt(1), datos.getNombre(),
+                        datos.getCostoIngredientes(), datos.getPrecio());
+            }
+        }
+    }
+
+    /**
+     * Obtiene el catálogo completo, incluidos los platillos desactivados.
+     * Los pedidos solo pueden usar platillos activos mediante listarPlatillos().
+     */
+    public List<RegistroPlatillo> listarCatalogoAdministracion() throws SQLException {
+        String sql = "SELECT id, nombre, costo_ingredientes, precio, activo "
+                + "FROM platillos ORDER BY activo DESC, id ASC";
+        List<RegistroPlatillo> catalogo = new ArrayList<>();
+        try (Connection conexion = fabrica.abrir();
+             PreparedStatement ps = conexion.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                Platillo platillo = new Platillo(rs.getInt("id"), rs.getString("nombre"),
+                        rs.getBigDecimal("costo_ingredientes"), rs.getBigDecimal("precio"));
+                catalogo.add(new RegistroPlatillo(platillo, rs.getBoolean("activo")));
+            }
+        }
+        return List.copyOf(catalogo);
+    }
+
+    /**
+     * Actualiza los datos actuales del menú; no modifica pedido_detalles.
+     * Retorna el registro con su estado activo/inactivo original.
+     */
+    public RegistroPlatillo actualizarPlatillo(int id, String nombre, BigDecimal costo,
+                                               BigDecimal precio) throws SQLException {
+        Platillo datos = new Platillo(id, nombre, costo, precio);
+        String sql = "UPDATE platillos SET nombre=?, costo_ingredientes=?, precio=? WHERE id=?";
+        try (Connection conexion = fabrica.abrir();
+             PreparedStatement ps = conexion.prepareStatement(sql)) {
+            ps.setString(1, datos.getNombre());
+            ps.setBigDecimal(2, datos.getCostoIngredientes());
+            ps.setBigDecimal(3, datos.getPrecio());
+            ps.setInt(4, id);
+            if (ps.executeUpdate() == 0) {
+                // MySQL retorna 0 para UPDATE sin cambios. Consultar existencia.
+                try (PreparedStatement existe = conexion.prepareStatement(
+                        "SELECT activo FROM platillos WHERE id=?")) {
+                    existe.setInt(1, id);
+                    try (ResultSet rs = existe.executeQuery()) {
+                        if (!rs.next()) {
+                            throw new NoSuchElementException("Platillo no encontrado: " + id);
+                        }
+                    }
+                }
+            }
+            try (PreparedStatement activo = conexion.prepareStatement(
+                    "SELECT activo FROM platillos WHERE id=?")) {
+                activo.setInt(1, id);
+                try (ResultSet rs = activo.executeQuery()) {
+                    if (!rs.next()) {
+                        throw new NoSuchElementException("Platillo no encontrado: " + id);
+                    }
+                    return new RegistroPlatillo(datos, rs.getBoolean("activo"));
+                }
+            }
+        }
+    }
+
+    /** Desactiva/activa sin borrar el registro ni sus relaciones históricas. */
+    public void cambiarDisponibilidadPlatillo(int id, boolean activo) throws SQLException {
+        if (id <= 0) {
+            throw new IllegalArgumentException("El identificador debe ser positivo.");
+        }
+        try (Connection conexion = fabrica.abrir();
+             PreparedStatement ps = conexion.prepareStatement(
+                     "UPDATE platillos SET activo=? WHERE id=?")) {
+            ps.setBoolean(1, activo);
+            ps.setInt(2, id);
+            if (ps.executeUpdate() == 0) {
+                try (PreparedStatement consulta = conexion.prepareStatement(
+                        "SELECT 1 FROM platillos WHERE id=?")) {
+                    consulta.setInt(1, id);
+                    try (ResultSet rs = consulta.executeQuery()) {
+                        if (!rs.next()) {
+                            throw new NoSuchElementException("Platillo no encontrado: " + id);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     public void registrarEmpleado(Empleado empleado) throws SQLException {
         if (empleado == null) {
             throw new IllegalArgumentException("El empleado es obligatorio.");

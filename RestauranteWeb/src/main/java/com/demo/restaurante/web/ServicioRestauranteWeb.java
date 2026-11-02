@@ -5,6 +5,8 @@ import com.demo.restaurante.EstadoPedido;
 import com.demo.restaurante.Pedido;
 import com.demo.restaurante.Platillo;
 import com.demo.restaurante.RepositorioRestauranteJdbc;
+import com.demo.restaurante.RegistroPlatillo;
+import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -25,6 +27,30 @@ public class ServicioRestauranteWeb {
 
     public List<Platillo> listarPlatillos() throws SQLException {
         return repositorio.listarPlatillos();
+    }
+
+    public List<RegistroPlatillo> listarCatalogoAdministracion() throws SQLException {
+        return repositorio.listarCatalogoAdministracion();
+    }
+
+    public Platillo crearPlatillo(String nombre, BigDecimal costo, BigDecimal precio)
+            throws SQLException {
+        validarFormulario(nombre, costo, precio);
+        return repositorio.crearPlatillo(nombre, costo, precio);
+    }
+
+    public RegistroPlatillo actualizarPlatillo(int id, String nombre, BigDecimal costo,
+                                               BigDecimal precio) throws SQLException {
+        validarFormulario(nombre, costo, precio);
+        return repositorio.actualizarPlatillo(id, nombre, costo, precio);
+    }
+
+    public void cambiarDisponibilidadPlatillo(int id, boolean activo) throws SQLException {
+        repositorio.cambiarDisponibilidadPlatillo(id, activo);
+    }
+
+    private static void validarFormulario(String nombre, BigDecimal costo, BigDecimal precio) {
+        new Platillo(1, nombre, costo, precio);
     }
 
     public List<Pedido> listarPedidos() throws SQLException {
