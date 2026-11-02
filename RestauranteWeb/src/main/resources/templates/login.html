@@ -12,6 +12,7 @@
   <p class="eyebrow">ACCESO RESTRINGIDO</p>
   <h1>Iniciar sesión</h1>
   <p class="subtitle">Ingresa con tu cuenta de Administrador o Empleado.</p>
+  <div class="notice warning" role="alert" th:if="${param.bloqueado}">Demasiados intentos fallidos desde esta conexión. Inténtalo de nuevo dentro de 15 minutos.</div>
   <div class="notice error" role="alert" th:if="${param.error}">Usuario o contraseña incorrectos, o cuenta inactiva.</div>
   <div class="notice success" role="status" th:if="${param.logout}">Sesión cerrada correctamente.</div>
   <div class="notice error" role="alert" th:if="${param.sesion}">Tu sesión ya no es válida. Inicia sesión nuevamente.</div>
