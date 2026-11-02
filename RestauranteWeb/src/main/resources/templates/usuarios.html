@@ -25,9 +25,9 @@
     <div class="stat"><span class="stat-label">Cuentas de empleado</span>
       <strong th:text="${empleados.size()}">0</strong><small>Sin incluir administradores</small></div>
     <div class="stat"><span class="stat-label">Empleados activos</span>
-      <strong th:text="${empleados.?[activo()].size()}">0</strong><small>Acceso según el rol EMPLEADO</small></div>
+      <strong th:text="${empleadosActivos}">0</strong><small>Acceso según el rol EMPLEADO</small></div>
     <div class="stat"><span class="stat-label">Tipo de acceso</span>
-      <strong style="font-size:23px">Restringido</strong><small>Sesión HTTP y protección CSRF</small></div>
+      <strong class="restricted-label">Restringido</strong><small>Sesión HTTP y protección CSRF</small></div>
   </section>
 
   <section class="panel employee-create-panel" aria-labelledby="nuevo-empleado">
