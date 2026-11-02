@@ -28,6 +28,10 @@ jobs:
       RESTAURANTE_TEST_DB_URL: jdbc:mysql://127.0.0.1:3306/restaurante_ci?connectionTimeZone=UTC
       RESTAURANTE_TEST_DB_USER: restaurante_ci
       RESTAURANTE_TEST_DB_PASSWORD: ci_not_a_real_secret
+      RESTAURANTE_DB_URL: jdbc:mysql://127.0.0.1:3306/restaurante_ci?connectionTimeZone=UTC
+      RESTAURANTE_DB_USER: restaurante_ci
+      RESTAURANTE_DB_PASSWORD: ci_not_a_real_secret
+      RESTAURANTE_SECURITY_TESTS: 'true'
     steps:
       - name: Descargar código
         uses: actions/checkout@v5
