@@ -12,8 +12,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 /**
- * Fase 9A: alta y consulta de cuentas EMPLEADO.
- * No permite modificar, crear ni borrar cuentas ADMIN desde la interfaz.
+ * Fases 9A/9B: alta, consulta, activación y restablecimiento de EMPLEADO.
+ * Todas las modificaciones filtran por rol EMPLEADO: nunca modifica ADMIN.
  */
 @Service
 public class AdministracionEmpleadosService {
@@ -46,11 +46,7 @@ public class AdministracionEmpleadosService {
             throw new IllegalArgumentException(
                     "El usuario debe tener entre 3 y 64 caracteres: letras, números, punto, guion o guion bajo.");
         }
-        if (password == null || password.length() < 12
-                || password.getBytes(StandardCharsets.UTF_8).length > 72) {
-            throw new IllegalArgumentException(
-                    "La contraseña debe tener al menos 12 caracteres y no superar 72 bytes UTF-8.");
-        }
+        validarClave(password);
         String sql = "INSERT INTO usuarios (usuario, password_hash, rol, activo) "
                 + "VALUES (?, ?, 'EMPLEADO', TRUE)";
         try (Connection conexion = ConexionRestaurante.desdeEntorno();
@@ -65,4 +61,57 @@ public class AdministracionEmpleadosService {
             throw ex;
         }
     }
+    public void cambiarEstadoEmpleado(int id, boolean activo) throws SQLException {
+        validarId(id);
+        String sql = "UPDATE usuarios SET activo = ? "
+                + "WHERE id = ? AND rol = 'EMPLEADO' AND activo <> ?";
+        try (Connection conexion = ConexionRestaurante.desdeEntorno();
+             PreparedStatement ps = conexion.prepareStatement(sql)) {
+            ps.setBoolean(1, activo);
+            ps.setInt(2, id);
+            ps.setBoolean(3, activo);
+            if (ps.executeUpdate() != 1) {
+                throw new IllegalArgumentException(
+                        "No se encontró el empleado o su estado ya estaba actualizado.");
+            }
+        }
+    }
+
+    /**
+     * La contraseña reemplazada invalida sesiones previas gracias al filtro
+     * de vigencia; la cuenta no se activa automáticamente.
+     */
+    public void restablecerClaveEmpleado(int id, String nueva, String confirmacion)
+            throws SQLException {
+        validarId(id);
+        validarClave(nueva);
+        if (!nueva.equals(confirmacion)) {
+            throw new IllegalArgumentException("Las contraseñas no coinciden.");
+        }
+        String sql = "UPDATE usuarios SET password_hash = ? "
+                + "WHERE id = ? AND rol = 'EMPLEADO'";
+        try (Connection conexion = ConexionRestaurante.desdeEntorno();
+             PreparedStatement ps = conexion.prepareStatement(sql)) {
+            ps.setString(1, encoder.encode(nueva));
+            ps.setInt(2, id);
+            if (ps.executeUpdate() != 1) {
+                throw new IllegalArgumentException("No se encontró la cuenta de empleado.");
+            }
+        }
+    }
+
+    private static void validarId(int id) {
+        if (id <= 0) {
+            throw new IllegalArgumentException("Identificador de empleado inválido.");
+        }
+    }
+
+    private static void validarClave(String password) {
+        if (password == null || password.length() < 12
+                || password.getBytes(StandardCharsets.UTF_8).length > 72) {
+            throw new IllegalArgumentException(
+                    "La contraseña debe tener al menos 12 caracteres y no superar 72 bytes UTF-8.");
+        }
+    }
+
 }
