@@ -58,8 +58,11 @@ class RepositorioRestauranteJdbcTest {
                 }
                 stmt.execute(sql);
             }
+            stmt.execute("ALTER TABLE pedido_detalles DROP FOREIGN KEY fk_detalles_platillo");
             stmt.execute("ALTER TABLE platillos DROP CHECK chk_platillo_id");
             stmt.execute("ALTER TABLE platillos MODIFY COLUMN id INT NOT NULL AUTO_INCREMENT");
+            stmt.execute("ALTER TABLE pedido_detalles ADD CONSTRAINT fk_detalles_platillo "
+                    + "FOREIGN KEY (platillo_id) REFERENCES platillos(id) ON DELETE RESTRICT");
         }
     }
 
