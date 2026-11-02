@@ -12,19 +12,22 @@
            th:href="@{/dashboard}">▤ <span>Dashboard</span></a>
         <a class="nav-item" th:classappend="${pagina == 'pedidos'} ? ' active' : ''"
            th:href="@{/pedidos}">▦ <span>Pedidos</span></a>
-        <a class="nav-item" th:classappend="${pagina == 'catalogo'} ? ' active' : ''"
+        <a class="nav-item" th:if="${esAdmin}" th:classappend="${pagina == 'catalogo'} ? ' active' : ''"
            th:href="@{/catalogo}">≡ <span>Catálogo</span></a>
         <a class="nav-item" th:classappend="${pagina == 'historial'} ? ' active' : ''"
            th:href="@{/historial}">◷ <span>Historial</span></a>
     </nav>
     <p class="section-label tools-label">DESARROLLO</p>
     <nav aria-label="API REST">
-        <a class="nav-item nav-secondary" th:href="@{/api/platillos}">↗ <span>API de platillos · JSON</span></a>
+        <a class="nav-item nav-secondary" th:if="${esAdmin}" th:href="@{/api/platillos}">↗ <span>API de platillos · JSON</span></a>
         <a class="nav-item nav-secondary" th:href="@{/api/pedidos}">↗ <span>API de pedidos · JSON</span></a>
     </nav>
     <div class="side-footer">
         <span class="status-dot"></span> Demo local · Java + Spring Boot
-        <small>Sin pagos, autenticación ni datos reales.</small>
+        <small>Acceso con sesión y roles. Sin pagos reales.</small>
+        <form method="post" th:action="@{/logout}" class="logout-form">
+            <button class="mini-btn logout-button" type="submit">Cerrar sesión ↪</button>
+        </form>
     </div>
 </aside>
 <header class="topbar" th:fragment="encabezado(seccion)">

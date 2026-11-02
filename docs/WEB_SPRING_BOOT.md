@@ -72,3 +72,7 @@ Las pantallas usan el fragmento Thymeleaf `templates/fragmentos/navegacion.html`
 **Restricción crítica:** los formularios aún no tienen autenticación, roles ni defensa CSRF. Mantener en `127.0.0.1` y no publicar el panel en Internet. La seguridad debe abordarse en una fase posterior antes de producción.
 
 La migración 03 retira y recrea temporalmente la clave foránea `fk_detalles_platillo`. Antes de aplicarla en una base que ya contiene pedidos, realizar un respaldo y detener el servidor local.
+
+## Fase 8 — Seguridad
+
+Inicio de sesión con usuarios de la tabla `usuarios`, hash BCrypt, roles `ADMIN` y `EMPLEADO`; protección CSRF en todos los formularios y las API; cierre de sesión con invalidación de sesión HTTP. La configuración detallada se encuentra en [SEGURIDAD.md](SEGURIDAD.md). Los enlaces de catálogo solo se muestran a ADMIN, y las operaciones administrativas están protegidas en el filtro de Spring Security, no solo en las plantillas.
