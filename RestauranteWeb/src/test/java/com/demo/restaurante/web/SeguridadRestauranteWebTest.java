@@ -3,14 +3,18 @@ package com.demo.restaurante.web;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
@@ -20,6 +24,14 @@ import org.springframework.test.web.servlet.MockMvc;
 class SeguridadRestauranteWebTest {
     @Autowired MockMvc mvc;
     @Autowired PasswordEncoder encoder;
+    @MockitoBean ServicioRestauranteWeb servicio;
+
+    @BeforeEach
+    void prepararListados() throws Exception {
+        when(servicio.listarPlatillos()).thenReturn(List.of());
+        when(servicio.listarPedidos()).thenReturn(List.of());
+        when(servicio.listarCatalogoAdministracion()).thenReturn(List.of());
+    }
 
     @Test
     void loginPublicoYConFormularioCsrf() throws Exception {
