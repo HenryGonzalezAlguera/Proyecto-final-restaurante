@@ -77,3 +77,16 @@ Los endpoints de consulta siguen devolviendo JSON cuando el usuario tiene permis
 - En producción faltarían HTTPS, cookies `Secure`, gestión de cuentas, recuperación de contraseña, bloqueo/rate limiting de intentos, auditoría de cambios, rotación de secretos, revisión de dependencias y pruebas de penetración.
 - El esquema de sesión y CSRF supone navegador/cliente con cookies; los clientes API externos necesitarán un mecanismo de autenticación adecuado, nunca desactivar CSRF sin diseñarlo.
 - No hay pagos ni datos sensibles reales. La tabla `usuarios` no comparte credenciales con las cuentas de MySQL.
+
+## Fase 9A — Administración de empleados
+
+Desde la pantalla **Usuarios** (`/usuarios`), un administrador puede consultar los empleados existentes y crear cuentas `EMPLEADO` con una contraseña temporal propia.
+
+- Requiere haber importado `database/04_usuarios_seguridad.sql` y haber iniciado sesión con `ADMIN`.
+- `GET /usuarios` y `POST /usuarios/empleados` están protegidos en el filtro de Spring Security con el rol `ADMIN`.
+- Los formularios requieren CSRF y los secretos no se imprimen en logs, vistas ni URLs.
+- La validación rechaza nombres fuera de `[a-zA-Z0-9_.-]{3,64}`, contraseñas de menos de 12 caracteres o mayores a 72 bytes UTF-8 y cuentas duplicadas.
+- Esta pantalla **solo** crea empleados; no puede crear ni modificar administradores.
+- Todavía no hay revocación inmediata de sesiones existentes, restablecimiento de claves ni auditoría. Estos aspectos deben cubrirse antes de desplegar públicamente.
+
+No se necesita una migración adicional: se reutiliza la tabla `usuarios` de la fase 8.
