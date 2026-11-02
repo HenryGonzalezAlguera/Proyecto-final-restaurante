@@ -7,6 +7,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.intercept.AuthorizationFilter;
 
 /**
  * Toda la aplicación usa sesiones autenticadas y CSRF habilitado.
@@ -15,6 +16,12 @@ import org.springframework.security.web.SecurityFilterChain;
  */
 @Configuration
 public class SeguridadRestauranteConfiguracion {
+    private final UsuariosRestauranteService usuarios;
+
+    public SeguridadRestauranteConfiguracion(UsuariosRestauranteService usuarios) {
+        this.usuarios = usuarios;
+    }
+
     @Bean
     PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder(12);
@@ -46,6 +53,7 @@ public class SeguridadRestauranteConfiguracion {
                 .permitAll()
         );
         http.exceptionHandling(ex -> ex.accessDeniedPage("/acceso-denegado"));
+        http.addFilterBefore(new VigenciaSesionRestauranteFiltro(usuarios), AuthorizationFilter.class);
         return http.build();
     }
 }
