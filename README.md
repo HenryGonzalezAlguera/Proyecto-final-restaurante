@@ -50,7 +50,7 @@ Las reglas de validación y transición se implementan una sola vez en el módul
 
 ## Seguridad y acceso
 
-Desde la fase 8 es obligatorio iniciar sesión para usar la aplicación. Se utiliza **Spring Security, BCrypt, roles ADMIN/EMPLEADO y protección CSRF**, sin contraseñas predeterminadas en el repositorio. Importa `database/04_usuarios_seguridad.sql` y crea la primera cuenta administrativa mediante variables de entorno según **[docs/SEGURIDAD.md](docs/SEGURIDAD.md)**. Sin cuentas creadas, el sistema permanece cerrado.
+Desde la fase 8 es obligatorio iniciar sesión para usar la aplicación. La fase 9D incorpora un límite local de cinco intentos fallidos por IP en 15 minutos, con bloqueo temporal de 15 minutos. Se utiliza **Spring Security, BCrypt, roles ADMIN/EMPLEADO y protección CSRF**, sin contraseñas predeterminadas en el repositorio. Importa `database/04_usuarios_seguridad.sql` y crea la primera cuenta administrativa mediante variables de entorno según **[docs/SEGURIDAD.md](docs/SEGURIDAD.md)**. Sin cuentas creadas, el sistema permanece cerrado.
 
 ## Compilar y probar
 
@@ -114,7 +114,7 @@ No todos los cambios de estado están permitidos; consulta [docs/FLUJO_PEDIDOS.m
 
 ## Limitaciones y seguridad
 
-- Prototipo local con **login, roles, CSRF y revocación de sesiones en siguiente petición**, aún sin HTTPS, mitigación de fuerza bruta ni auditoría transaccional: no desplegarlo en un servidor público.
+- Prototipo local con **login, roles, CSRF y revocación de sesiones en siguiente petición**, con mitigación local de intentos de inicio de sesión, pero aún sin HTTPS ni auditoría transaccional: no desplegarlo en un servidor público.
 - El formulario web crea **un tipo de platillo por pedido**; la lógica Java y la API de repositorio ya admiten múltiples detalles y se ampliará la interfaz posteriormente.
 - La edición del catálogo y la gestión de usuarios requieren **rol ADMIN**; los roles ADMIN y EMPLEADO pueden operar pedidos. El entorno continúa siendo local.
 - El Dashboard calcula indicadores sobre el estado **actual** de los pedidos, no ventas cobradas; no hay fechas de ventas ni auditoría de cambios.
@@ -134,6 +134,6 @@ No todos los cambios de estado están permitidos; consulta [docs/FLUJO_PEDIDOS.m
 6. Dashboard, catálogo e historial visual con pruebas de navegación (**completada**).
 7. Crear, editar y desactivar platillos sin romper pedidos históricos (**completada**).
 8. Spring Security, inicio y cierre de sesión, usuarios BCrypt, roles y CSRF (**completada**).
-9. Gestión de cuentas (**9A y 9B completadas**), auditoría de operaciones (**9C en revisión**) y pruebas end-to-end (**pendientes**).
+9. Gestión de cuentas (**9A y 9B completadas**), auditoría (**9C completada**) y protección contra intentos repetidos de inicio de sesión y pruebas de permisos (**9D en revisión**).
 
 Para empezar consulta también [docs/WEB_SPRING_BOOT.md](docs/WEB_SPRING_BOOT.md) y [database/README.md](database/README.md).
