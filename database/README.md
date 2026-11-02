@@ -62,7 +62,7 @@ GitHub Actions crea un contenedor MySQL 8.4, una base **separada** llamada `rest
 
 ## Migración de fase 7 (obligatoria para crear platillos desde la web)
 
-Desde phpMyAdmin (con una cuenta administradora), selecciona la base `restaurante_portafolio` e importa **`database/03_migracion_catalogo.sql`**. Esta migración convierte la columna primaria `platillos.id` en **AUTO_INCREMENT**, conservando los IDs y los datos de todos los platillos existentes. No modifica los pedidos ni otras bases. Ejecuta primero las fases 1 y 2 si aún no las tienes.
+Antes de importar, **respalda la base `restaurante_portafolio` y detén Spring Boot**: esta migración requiere retirar y recrear temporalmente una clave foránea. Si alguna instrucción falla, no continúes ejecutando cambios sin revisar el estado de las restricciones.\n\nDesde phpMyAdmin (con una cuenta administradora), selecciona la base `restaurante_portafolio` e importa **`database/03_migracion_catalogo.sql`**. Esta migración convierte la columna primaria `platillos.id` en **AUTO_INCREMENT**, conservando los IDs y los datos de todos los platillos existentes. No modifica los pedidos ni otras bases. Ejecuta primero las fases 1 y 2 si aún no las tienes.
 
 Después de esta migración, `restaurante_app` mantiene únicamente `SELECT, INSERT, UPDATE`: las acciones diarias del catálogo NO requieren `ALTER` ni `DELETE`. No hay borrado físico de platillos, para conservar la integridad de las claves foráneas.
 
