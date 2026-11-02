@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="description" content="Historial consultable de pedidos almacenados."/>
+  <title>Restaurante | Historial</title>
+  <link rel="stylesheet" th:href="@{/css/restaurante.css}" href="/css/restaurante.css"/>
+</head>
+<body><div class="app-shell">
+<aside th:replace="~{fragmentos/navegacion :: lateral('historial')}"></aside>
+<main class="main"><header th:replace="~{fragmentos/navegacion :: encabezado('Historial')}"></header>
+<div class="content">
+  <div class="page-heading"><div><p class="eyebrow">TRAZABILIDAD DE ÓRDENES</p>
+    <h1>Historial de pedidos</h1>
+    <p class="subtitle">Consulta el estado y los detalles de cada pedido guardado en MySQL.</p>
+  </div><a class="btn btn-outline" th:href="@{/pedidos}">Ir a operaciones →</a></div>
+  <div class="notice error" role="alert" th:if="${errorConexion}" th:text="${errorConexion}"></div>
+  <div class="notice error" role="alert" th:if="${errorFiltro}" th:text="${errorFiltro}"></div>
+  <section class="panel filters-panel">
+    <form method="get" th:action="@{/historial}" class="filters-form">
+      <div class="filter-field"><label for="q">Buscar ID de pedido o cliente</label>
+        <input id="q" name="q" type="search" placeholder="Ej. 101" th:value="${busqueda}"/></div>
+      <div class="filter-field"><label for="estado">Estado</label>
+        <select name="estado" id="estado">
+          <option value="" th:selected="${estadoFiltro == ''}">Todos los estados</option>
+          <option value="PENDIENTE" th:selected="${estadoFiltro == 'PENDIENTE'}">Pendiente</option>
+          <option value="EN_PREPARACION" th:selected="${estadoFiltro == 'EN_PREPARACION'}">En preparación</option>
+          <option value="LISTO" th:selected="${estadoFiltro == 'LISTO'}">Listo</option>
+          <option value="ENTREGADO" th:selected="${estadoFiltro == 'ENTREGADO'}">Entregado</option>
+          <option value="CANCELADO" th:selected="${estadoFiltro == 'CANCELADO'}">Cancelado</option>
+        </select></div>
+      <button class="btn btn-primary" type="submit">Aplicar filtros</button>
+      <a class="btn btn-outline" th:href="@{/historial}">Limpiar</a>
+    </form>
+  </section>
+  <section class="panel history-panel">
+    <div class="panel-heading"><div><p class="panel-kicker">REGISTRO DE ACTIVIDAD</p>
+      <h2>Pedidos encontrados <span class="counter" th:text="${pedidos.size()}">0</span></h2></div>
+      <span class="hint-text" th:text="${'Total almacenados: ' + totalPedidos}">0</span>
+    </div>
+    <div class="history-list" th:if="${!pedidos.isEmpty()}">
+      <details class="history-item" th:each="pedido : ${pedidos}">
+        <summary>
+          <span class="history-title" th:text="${'Pedido #' + pedido.id}">Pedido #1</span>
+          <span class="history-client" th:text="${'Cliente ' + pedido.clienteId}">Cliente 101</span>
+          <span class="state" th:classappend="${' status-' + pedido.estado.name().toLowerCase()}"
+             th:text="${pedido.estado.name().replace('_', ' ')}">PENDIENTE</span>
+          <strong class="history-total" th:text="${'₡' + pedido.total}">₡0</strong>
+          <span aria-hidden="true" class="expand-glyph">⌄</span>
+        </summary>
+        <div class="history-details">
+          <p class="panel-desc">Detalle de productos y precios registrados originalmente.</p>
+          <div class="dish-row" th:each="d : ${pedido.detalles}">
+            <span th:text="${d.nombrePlatillo + ' × ' + d.cantidad}">Platillo × 1</span>
+            <strong th:text="${'₡' + d.subtotal}">₡0</strong>
+          </div>
+          <div class="dish-row history-sum"><span>Total del pedido</span>
+            <strong th:text="${'₡' + pedido.total}">₡0</strong></div>
+        </div>
+      </details>
+    </div>
+    <div class="empty" th:if="${pedidos.isEmpty()}">No hay pedidos que coincidan con estos filtros.</div>
+  </section>
+  <p class="hint-text">El historial representa el estado actual de cada pedido, no un registro de auditoría de todas las transiciones. No incluye pagos.</p>
+<footer class="main-footer">Restaurante · Demostración local · Java, Spring Boot y MySQL · Sin autenticación</footer>
+</div></main></div></body></html>

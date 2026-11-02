@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="description" content="Catálogo de platillos y márgenes estimados."/>
+  <title>Restaurante | Catálogo</title>
+  <link rel="stylesheet" th:href="@{/css/restaurante.css}" href="/css/restaurante.css"/>
+</head>
+<body><div class="app-shell">
+<aside th:replace="~{fragmentos/navegacion :: lateral('catalogo')}"></aside>
+<main class="main"><header th:replace="~{fragmentos/navegacion :: encabezado('Catálogo')}"></header>
+<div class="content">
+  <div class="page-heading">
+    <div><p class="eyebrow">MENÚ Y COSTOS</p><h1>Catálogo de platillos</h1>
+      <p class="subtitle">Consulta precios, costos y márgenes unitarios del menú activo.</p></div>
+    <a class="btn btn-outline" th:href="@{/pedidos}">Crear pedido →</a>
+  </div>
+  <div class="notice error" role="alert" th:if="${errorConexion}" th:text="${errorConexion}"></div>
+  <section class="stats" aria-label="Resumen del catálogo">
+    <div class="stat"><span class="stat-label">Platillos activos</span><strong th:text="${platillos.size()}">0</strong><small>Disponibles en MySQL</small></div>
+    <div class="stat"><span class="stat-label">Moneda</span><strong>CRC</strong><small>Colones costarricenses</small></div>
+    <div class="stat"><span class="stat-label">Estado del catálogo</span><strong>Activo</strong><small>Solo consulta, sin edición en esta fase</small></div>
+  </section>
+  <div class="catalog-grid" th:unless="${platillos.isEmpty()}">
+    <article class="dish-card" th:each="p : ${platillos}">
+      <div class="dish-top"><span class="dish-symbol" aria-hidden="true">♨</span><span class="active-label">● Disponible</span></div>
+      <div class="dish-id" th:text="${'PLATILLO #' + p.id}">PLATILLO #1</div>
+      <h2 th:text="${p.nombre}">Arroz con pollo</h2>
+      <div class="dish-price" th:text="${'₡' + p.precio}">₡4.000</div>
+      <div class="dish-divider"></div>
+      <div class="dish-row"><span>Costo de ingredientes</span><strong th:text="${'₡' + p.costoIngredientes}">₡0</strong></div>
+      <div class="dish-row"><span>Margen bruto unitario</span><strong th:text="${'₡' + p.margenBrutoUnitario}">₡0</strong></div>
+      <a class="dish-action" th:href="@{/pedidos}">Agregar desde pedidos →</a>
+    </article>
+  </div>
+  <section class="panel empty-panel" th:if="${platillos.isEmpty() and errorConexion == null}">
+    <h2>No hay platillos activos</h2><p>Importa el archivo de datos de demostración en la base MySQL.</p>
+  </section>
+  <p class="hint-text">Los márgenes son estimaciones basadas únicamente en el costo de ingredientes: no incluyen impuestos, personal ni otros gastos.</p>
+<footer class="main-footer">Restaurante · Demostración local · Java, Spring Boot y MySQL · Sin autenticación</footer>
+</div></main></div></body></html>
