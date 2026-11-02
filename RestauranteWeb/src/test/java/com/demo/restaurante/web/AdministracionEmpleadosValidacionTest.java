@@ -25,4 +25,18 @@ class AdministracionEmpleadosValidacionTest {
         assertThrows(IllegalArgumentException.class,
                 () -> servicio.crearEmpleado("empleado2", "á".repeat(40)));
     }
+    @Test
+    void noPermiteIdsInvalidosEnCambiosDeEstado() {
+        assertThrows(IllegalArgumentException.class,
+                () -> servicio.cambiarEstadoEmpleado(0, false));
+    }
+
+    @Test
+    void noPermiteClavesDistintasODebilesAlRestablecer() {
+        assertThrows(IllegalArgumentException.class,
+                () -> servicio.restablecerClaveEmpleado(5, "ClaveTemporalLarga2026!", "otra"));
+        assertThrows(IllegalArgumentException.class,
+                () -> servicio.restablecerClaveEmpleado(5, "corta", "corta"));
+    }
+
 }
