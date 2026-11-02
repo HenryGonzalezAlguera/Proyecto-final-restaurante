@@ -19,6 +19,7 @@
   </div>
   <div class="notice error" role="alert" th:if="${errorConexion}" th:text="${errorConexion}"></div>
   <div class="notice error" role="alert" th:if="${error}" th:text="${error}"></div>
+  <div class="notice warning" role="alert" th:if="${advertenciaAuditoria}" th:text="${advertenciaAuditoria}"></div>
   <div class="notice success" role="status" th:if="${mensaje}" th:text="${mensaje}"></div>
 
   <section class="stats" aria-label="Resumen de empleados">
