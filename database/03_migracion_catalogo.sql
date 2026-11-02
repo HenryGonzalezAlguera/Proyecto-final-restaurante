@@ -4,5 +4,7 @@
 -- No modifica otros esquemas ni elimina datos.
 USE restaurante_portafolio;
 
+ALTER TABLE platillos DROP CHECK chk_platillo_id;
+
 ALTER TABLE platillos
     MODIFY COLUMN id INT NOT NULL AUTO_INCREMENT;
