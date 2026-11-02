@@ -19,8 +19,15 @@ public final class FiltroLimiteIntentosLogin extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest solicitud,
                                     HttpServletResponse respuesta,
                                     FilterChain cadena) throws ServletException, IOException {
+        // En MockMvc getServletPath() puede venir vacío aunque la URI sea /login.
+        // Usar la URI relativa al contexto mantiene el mismo comportamiento real.
+        String ruta = solicitud.getRequestURI()
+                .substring(solicitud.getContextPath().length());
+        if (ruta.startsWith("/login;")) {
+            ruta = "/login"; // rutas con parámetro de sesión URL
+        }
         if ("POST".equals(solicitud.getMethod())
-                && "/login".equals(solicitud.getServletPath())
+                && "/login".equals(ruta)
                 && control.estaBloqueado(solicitud.getRemoteAddr())) {
             respuesta.sendRedirect(solicitud.getContextPath() + "/login?bloqueado");
             return;
