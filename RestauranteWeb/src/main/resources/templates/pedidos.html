@@ -9,27 +9,9 @@
 </head>
 <body>
 <div class="app-shell">
-    <aside class="sidebar">
-        <a class="brand" th:href="@{/pedidos}" href="/pedidos">
-            <span class="brand-icon">R</span>
-            <span>Restaurante<small>Panel de operaciones</small></span>
-        </a>
-        <p class="section-label">ADMINISTRACIÓN</p>
-        <nav aria-label="Navegación principal">
-            <a class="nav-item active" th:href="@{/pedidos}" href="/pedidos">▦ <span>Pedidos</span></a>
-            <a class="nav-item" th:href="@{/api/platillos}" href="/api/platillos">≡ <span>Catálogo (API)</span></a>
-            <a class="nav-item" th:href="@{/api/pedidos}" href="/api/pedidos">↗ <span>Pedidos (API)</span></a>
-        </nav>
-        <div class="side-footer">
-            <span class="status-dot"></span> Demo local · Java + Spring Boot
-            <small>Uso educativo. Sin pagos ni datos reales.</small>
-        </div>
-    </aside>
+    <aside th:replace="~{fragmentos/navegacion :: lateral('pedidos')}"></aside>
     <main class="main">
-        <header class="topbar">
-            <div class="crumb">Operaciones <span>/</span> Pedidos</div>
-            <span class="environment">ENTORNO LOCAL</span>
-        </header>
+        <header th:replace="~{fragmentos/navegacion :: encabezado('Pedidos')}"></header>
         <div class="content">
             <div class="page-heading">
                 <div>

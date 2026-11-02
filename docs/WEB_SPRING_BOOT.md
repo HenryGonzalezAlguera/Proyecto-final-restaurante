@@ -43,3 +43,17 @@ El panel permite registrar un platillo y su cantidad por pedido, cambiar estados
 ## Pruebas
 
 `mvn -f pom.xml clean verify` construye y ejecuta los tests de ambos módulos. GitHub Actions levanta MySQL 8.4 de CI para las pruebas JDBC y MockMvc verifica las rutas web sin manipular la base de datos real del usuario.
+
+## Fase 6 — Navegación y pantallas de consulta
+
+- `/dashboard` presenta los cinco estados y el valor nominal de pedidos ENTREGADOS. **No representa pagos cobrados**.
+- `/catalogo` presenta platillos activos con precio, costo de ingredientes y margen unitario. La vista es de lectura.
+- `/historial` permite búsqueda por ID de pedido o cliente, filtro por estado y detalle desplegable por pedido.
+- `/pedidos` conserva formularios y flujo de cambios de estados.
+- Las rutas `/api/platillos` y `/api/pedidos` siguen devolviendo JSON; se muestran bajo «Desarrollo», separadas de las páginas de usuario.
+- `AnaliticaRestauranteWeb` calcula el resumen desde pedidos persistidos; el ranking excluye pedidos cancelados. No se añade almacenamiento redundante ni tablas nuevas.
+- `VistasRestauranteController` atiende las tres nuevas pantallas y presenta errores de conexión sin divulgar detalles de SQL.
+
+Las pantallas usan el fragmento Thymeleaf `templates/fragmentos/navegacion.html` para compartir navegación. Los tests MockMvc comprueban HTML, filtros y fallos SQL; hay tests unitarios del cálculo de indicadores.
+
+**Limitaciones:** historial sin auditoría cronológica ni paginación; catálogo sin CRUD web; sin autenticación, CSRF, pagos ni despliegue público. No presentar el valor de pedidos entregados como facturación.

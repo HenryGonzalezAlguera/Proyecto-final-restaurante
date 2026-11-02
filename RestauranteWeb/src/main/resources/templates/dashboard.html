@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="description" content="Indicadores operativos de pedidos y productos."/>
+  <title>Restaurante | Dashboard</title>
+  <link rel="stylesheet" th:href="@{/css/restaurante.css}" href="/css/restaurante.css"/>
+</head>
+<body><div class="app-shell">
+<aside th:replace="~{fragmentos/navegacion :: lateral('dashboard')}"></aside>
+<main class="main"><header th:replace="~{fragmentos/navegacion :: encabezado('Dashboard')}"></header>
+<div class="content">
+  <div class="page-heading"><div><p class="eyebrow">PANORAMA OPERATIVO</p>
+    <h1>Dashboard del restaurante</h1>
+    <p class="subtitle">Indicadores calculados con los pedidos existentes en MySQL.</p>
+  </div><a class="btn btn-outline" th:href="@{/pedidos}">Gestionar pedidos →</a></div>
+  <div class="notice error" role="alert" th:if="${errorConexion}" th:text="${errorConexion}"></div>
+  <section class="stats" aria-label="Indicadores principales">
+    <div class="stat"><span class="stat-label">Pedidos registrados</span>
+      <strong th:text="${resumen.total}">0</strong><small>Todos los estados</small></div>
+    <div class="stat"><span class="stat-label">Pendientes</span>
+      <strong th:text="${resumen.pendientes}">0</strong><small>Esperando preparación</small></div>
+    <div class="stat"><span class="stat-label">Entregados</span>
+      <strong th:text="${resumen.entregados}">0</strong><small>Sin información de cobro</small></div>
+  </section>
+  <div class="analytics-grid">
+    <section class="panel">
+      <p class="panel-kicker">OPERACIONES</p><h2>Estado de los pedidos</h2>
+      <p class="panel-desc">Distribución actual de los pedidos registrados.</p>
+      <div class="status-bars">
+        <div class="status-row"><div class="dish-row"><span>Pendientes</span><strong th:text="${resumen.pendientes}">0</strong></div>
+          <progress th:value="${resumen.pendientes}" th:max="${resumen.total > 0 ? resumen.total : 1}"></progress></div>
+        <div class="status-row"><div class="dish-row"><span>En preparación</span><strong th:text="${resumen.preparacion}">0</strong></div>
+          <progress th:value="${resumen.preparacion}" th:max="${resumen.total > 0 ? resumen.total : 1}"></progress></div>
+        <div class="status-row"><div class="dish-row"><span>Listos</span><strong th:text="${resumen.listos}">0</strong></div>
+          <progress th:value="${resumen.listos}" th:max="${resumen.total > 0 ? resumen.total : 1}"></progress></div>
+        <div class="status-row"><div class="dish-row"><span>Entregados</span><strong th:text="${resumen.entregados}">0</strong></div>
+          <progress th:value="${resumen.entregados}" th:max="${resumen.total > 0 ? resumen.total : 1}"></progress></div>
+        <div class="status-row"><div class="dish-row"><span>Cancelados</span><strong th:text="${resumen.cancelados}">0</strong></div>
+          <progress th:value="${resumen.cancelados}" th:max="${resumen.total > 0 ? resumen.total : 1}"></progress></div>
+      </div>
+    </section>
+    <section class="panel">
+      <p class="panel-kicker">DEMANDA</p><h2>Platillos más solicitados</h2>
+      <p class="panel-desc">Unidades incluidas en pedidos no cancelados. No son ventas cobradas.</p>
+      <div class="product-ranking" th:unless="${resumen.destacados.isEmpty()}">
+        <div class="ranking-row" th:each="producto, pos : ${resumen.destacados}">
+          <span class="rank" th:text="${pos.count}">1</span>
+          <span class="rank-name" th:text="${producto.nombre}">Platillo</span>
+          <strong th:text="${producto.unidades + ' uds.'}">0 uds.</strong>
+        </div>
+      </div>
+      <div class="empty" th:if="${resumen.destacados.isEmpty()}">Todavía no hay productos solicitados.</div>
+    </section>
+  </div>
+  <section class="panel valuation">
+    <div><p class="panel-kicker">REFERENCIA OPERATIVA</p>
+      <h2>Valor de pedidos entregados</h2>
+      <p class="panel-desc">Suma de importes de los pedidos con estado ENTREGADO. Este dato <strong>no equivale a ingresos cobrados</strong>.</p>
+    </div>
+    <strong th:text="${'₡' + resumen.valorEntregado}">₡0.00</strong>
+  </section>
+<footer class="main-footer">Restaurante · Demostración local · Java, Spring Boot y MySQL · Sin autenticación</footer>
+</div></main></div></body></html>

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<body>
+<aside class="sidebar" th:fragment="lateral(pagina)">
+    <a class="brand" th:href="@{/pedidos}">
+        <span class="brand-icon">R</span>
+        <span>Restaurante<small>Panel de operaciones</small></span>
+    </a>
+    <p class="section-label">ADMINISTRACIÓN</p>
+    <nav aria-label="Navegación principal">
+        <a class="nav-item" th:classappend="${pagina == 'dashboard'} ? ' active' : ''"
+           th:href="@{/dashboard}">▤ <span>Dashboard</span></a>
+        <a class="nav-item" th:classappend="${pagina == 'pedidos'} ? ' active' : ''"
+           th:href="@{/pedidos}">▦ <span>Pedidos</span></a>
+        <a class="nav-item" th:classappend="${pagina == 'catalogo'} ? ' active' : ''"
+           th:href="@{/catalogo}">≡ <span>Catálogo</span></a>
+        <a class="nav-item" th:classappend="${pagina == 'historial'} ? ' active' : ''"
+           th:href="@{/historial}">◷ <span>Historial</span></a>
+    </nav>
+    <p class="section-label tools-label">DESARROLLO</p>
+    <nav aria-label="API REST">
+        <a class="nav-item nav-secondary" th:href="@{/api/platillos}">↗ <span>API de platillos · JSON</span></a>
+        <a class="nav-item nav-secondary" th:href="@{/api/pedidos}">↗ <span>API de pedidos · JSON</span></a>
+    </nav>
+    <div class="side-footer">
+        <span class="status-dot"></span> Demo local · Java + Spring Boot
+        <small>Sin pagos, autenticación ni datos reales.</small>
+    </div>
+</aside>
+<header class="topbar" th:fragment="encabezado(seccion)">
+    <div class="crumb">Operaciones <span>/</span> <strong th:text="${seccion}">Vista</strong></div>
+    <span class="environment">ENTORNO LOCAL</span>
+</header>
+</body>
+</html>

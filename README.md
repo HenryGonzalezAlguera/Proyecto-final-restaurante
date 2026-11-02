@@ -1,13 +1,16 @@
 # Restaurante — Java, Spring Boot y MySQL
 
-Aplicación de demostración para portafolio que evolucionó desde una práctica de estructuras de datos hasta una **interfaz web de pedidos** y **API REST local**, reutilizando el modelo de dominio original y la persistencia JDBC.
+Aplicación de demostración para portafolio que evolucionó desde una práctica de estructuras de datos hasta **cuatro pantallas web operativas** y **API REST local**, reutilizando el modelo de dominio original y la persistencia JDBC.
 
 > **Estado: prototipo local.** Sin autenticación, pagos, facturación ni datos reales. Por seguridad el servidor web se enlaza a `127.0.0.1` de forma predeterminada. **No exponer a Internet** sin incorporar seguridad, permisos y pruebas adicionales.
 
 ## Qué permite hacer
 
-- Visualizar el catálogo de platillos, precios y pedidos.
+- Navegar por las páginas **Dashboard**, **Pedidos**, **Catálogo** e **Historial** desde un menú uniforme.
+- Consultar el catálogo activo en tarjetas con precios, costos y márgenes estimados.
 - Registrar un pedido desde el navegador: cliente, platillo y cantidad.
+- Filtrar el historial por estado o identificador, expandiendo el detalle de cada pedido.
+- Consultar indicadores de actividad y ranking de platillos solicitados; el valor de pedidos entregados **no equivale a ventas cobradas**.
 - Consultar estado, precio total y número de pedidos pendientes.
 - Procesar pendientes **FIFO**, marcar platos listos y entregar.
 - Cancelar pedidos que aún no están en preparación.
@@ -25,7 +28,7 @@ Las reglas de validación y transición se implementan una sola vez en el módul
 ├── RestauranteWeb/               # Spring Boot MVC, Thymeleaf y API JSON
 │   ├── pom.xml
 │   ├── src/main/java/com/demo/restaurante/web/
-│   ├── src/main/resources/templates/pedidos.html
+│   ├── src/main/resources/templates/{pedidos,catalogo,historial,dashboard}.html
 │   ├── src/main/resources/static/css/restaurante.css
 │   └── src/test/java/com/demo/restaurante/web/
 ├── database/                     # Esquema SQL y guía XAMPP
@@ -64,7 +67,9 @@ mvn -f pom.xml clean package
 java -jar RestauranteWeb/target/restaurante-web-1.0-SNAPSHOT.jar
 ```
 
-6. Abre **http://127.0.0.1:8085/pedidos**.
+6. Abre **http://127.0.0.1:8085/pedidos**. En el menú lateral encontrarás las demás páginas:
+
+**Rutas visuales:** `/dashboard` (indicadores), `/pedidos` (operaciones), `/catalogo` (menú), `/historial` (búsqueda y detalles). Los enlaces `/api/...` continúan disponibles como JSON en la sección Desarrollo.
 
 La interfaz informa si faltan credenciales o esquema. La aplicación **no crea automáticamente la base ni las tablas**. La inicialización de catálogo debe hacerse en MySQL o con la demostración JDBC explicada en `database/README.md`. Para el módulo original de consola:
 
@@ -101,6 +106,9 @@ No todos los cambios de estado están permitidos; consulta [docs/FLUJO_PEDIDOS.m
 
 - Prototipo local **sin sistema de acceso** ni protección CSRF: no desplegarlo en un servidor público.
 - El formulario web crea **un tipo de platillo por pedido**; la lógica Java y la API de repositorio ya admiten múltiples detalles y se ampliará la interfaz posteriormente.
+- El catálogo de esta fase es de **consulta**, todavía no incluye edición ni desactivación de platillos desde la web.
+- El Dashboard calcula indicadores sobre el estado **actual** de los pedidos, no ventas cobradas; no hay fechas de ventas ni auditoría de cambios.
+- El historial filtra en memoria para una demostración local: en bases voluminosas necesitará paginación y filtros SQL.
 - No hay caja, pagos, IVA, inventario, sesiones de usuario, facturación ni reservas.
 - No se guardan credenciales reales en GitHub.
 - La demostración de consola y el componente web son independientes: uno utiliza datos ficticios en memoria y el otro consulta MySQL.
@@ -112,7 +120,8 @@ No todos los cambios de estado están permitidos; consulta [docs/FLUJO_PEDIDOS.m
 2. Modelo del dominio y validaciones.
 3. Ciclo de vida de pedidos y FIFO.
 4. Persistencia transaccional con JDBC y pruebas de integración.
-5. Aplicación web y API con Spring Boot (**fase actual**).
-6. End-to-end, control de acceso, mejoras de interfaz y presentación final (**pendiente**).
+5. Aplicación web de pedidos y API con Spring Boot (**completada**).
+6. Dashboard, catálogo e historial visual con pruebas de navegación (**fase actual**).
+7. CRUD de catálogo, seguridad, paginación, pruebas end-to-end y presentación final (**pendiente**).
 
 Para empezar consulta también [docs/WEB_SPRING_BOOT.md](docs/WEB_SPRING_BOOT.md) y [database/README.md](database/README.md).
