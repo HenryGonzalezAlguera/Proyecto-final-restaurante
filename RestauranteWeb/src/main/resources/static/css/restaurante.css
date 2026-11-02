@@ -190,3 +190,10 @@ td{border-bottom:1px solid #eff1f3;padding:16px 19px;font-size:12px;color:#626e7
 .employee-reset label{margin:3px 0 0}
 .employee-reset input{height:38px}
 .employee-reset button{margin-top:6px;white-space:normal}
+
+/* Fase 9C — Auditoría de operaciones */
+.notice.warning{background:#fff7e8;color:#956b2d}
+.audit-table{min-width:790px}
+.audit-pagination{display:flex;justify-content:flex-end;align-items:center;gap:16px;padding:19px 24px;font-size:12px;color:#87939d}
+.audit-pagination .btn{margin:0;text-decoration:none;display:inline-flex;align-items:center}
+@media(max-width:680px){.audit-pagination{justify-content:center;flex-wrap:wrap}}
