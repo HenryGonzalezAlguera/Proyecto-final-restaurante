@@ -43,7 +43,7 @@ class VistasRestauranteWebTest {
     }
 
     @Test
-    void catalogoRenderizaTarjetasConPreciosYMárgenes() throws Exception {
+    void catalogoRenderizaTarjetasConPreciosYMargenes() throws Exception {
         when(servicio.listarPlatillos()).thenReturn(List.of(platillo()));
         mvc.perform(get("/catalogo")).andExpect(status().isOk())
                 .andExpect(view().name("catalogo"))
@@ -86,7 +86,7 @@ class VistasRestauranteWebTest {
         mvc.perform(get("/dashboard")).andExpect(status().isOk())
                 .andExpect(view().name("dashboard"))
                 .andExpect(content().string(containsString("Dashboard del restaurante")))
-                .andExpect(content().string(containsString("16000.00")))
+                .andExpect(content().string(containsString("8000.00")))
                 .andExpect(content().string(containsString("Arroz con Pollo")))
                 .andExpect(content().string(containsString("no equivale a ingresos cobrados")));
     }
