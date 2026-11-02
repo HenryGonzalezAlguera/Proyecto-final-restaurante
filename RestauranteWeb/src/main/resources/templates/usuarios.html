@@ -14,7 +14,7 @@
 <div class="content">
   <div class="page-heading">
     <div><p class="eyebrow">CONTROL DE ACCESOS</p><h1>Usuarios y empleados</h1>
-      <p class="subtitle">Crea cuentas para operaciones sin compartir la contraseña del administrador.</p></div>
+      <p class="subtitle">Crea cuentas de empleados, administra su acceso y restablece sus contraseñas.</p></div>
     <span class="live-indicator"><span></span> Solo administradores</span>
   </div>
   <div class="notice error" role="alert" th:if="${errorConexion}" th:text="${errorConexion}"></div>
@@ -53,16 +53,35 @@
       <h2 id="lista-empleados">Cuentas de empleados</h2>
     </div><span class="counter" th:text="${empleados.size()}">0</span></div>
     <div class="table-scroller" th:unless="${empleados.isEmpty()}">
-      <table><thead><tr><th>ID</th><th>Usuario</th><th>Rol</th><th>Estado</th></tr></thead>
+      <table><thead><tr><th>ID</th><th>Usuario</th><th>Rol</th><th>Estado</th><th>Acciones</th></tr></thead>
       <tbody><tr th:each="e : ${empleados}">
         <td class="order-id" th:text="${e.id()}">1</td>
         <td th:text="${e.usuario()}">empleado</td><td>EMPLEADO</td>
         <td><span class="state" th:classappend="${e.activo()} ? ' status-entregado' : ' status-cancelado'"
            th:text="${e.activo()} ? 'Activo' : 'Inactivo'">Activo</span></td>
+        <td><div class="employee-actions">
+          <form method="post" th:action="@{/usuarios/empleados/{id}/estado(id=${e.id()})}">
+            <input type="hidden" name="accion" th:value="${e.activo()} ? 'desactivar' : 'activar'"/>
+            <button type="submit" class="mini-btn" th:classappend="${e.activo()} ? ' danger' : ''"
+                    th:text="${e.activo()} ? 'Desactivar' : 'Activar'">Desactivar</button>
+          </form>
+          <details class="employee-reset">
+            <summary>Restablecer clave</summary>
+            <form method="post" th:action="@{/usuarios/empleados/{id}/clave(id=${e.id()})}">
+              <label th:for="${'nueva-clave-' + e.id()}">Nueva contraseña</label>
+              <input type="password" name="password" th:id="${'nueva-clave-' + e.id()}"
+                     minlength="12" required autocomplete="new-password"/>
+              <label th:for="${'confirmar-clave-' + e.id()}">Confirmar contraseña</label>
+              <input type="password" name="confirmacion" th:id="${'confirmar-clave-' + e.id()}"
+                     minlength="12" required autocomplete="new-password"/>
+              <button class="mini-btn" type="submit">Guardar nueva contraseña</button>
+            </form>
+          </details>
+        </div></td>
       </tr></tbody></table>
     </div>
     <p class="empty" th:if="${empleados.isEmpty() and errorConexion == null}">Todavía no hay empleados registrados.</p>
   </section>
-  <p class="hint-text">Fase 9A: alta y consulta de empleados. La gestión de contraseñas, revocación de sesiones y auditoría se abordarán por separado antes de cualquier despliegue público.</p>
+  <p class="hint-text">Fase 9B: desactivar una cuenta impide nuevos inicios de sesión y revoca su sesión en la siguiente petición. Restablecer la clave también revoca sesiones existentes. La auditoría y la seguridad de producción siguen pendientes.</p>
   <footer class="main-footer">Restaurante · Demo local · Usuarios protegidos por roles</footer>
 </div></main></div></body></html>
