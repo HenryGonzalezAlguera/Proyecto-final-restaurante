@@ -1,6 +1,6 @@
 # Capturas para el portafolio — Pendientes de publicar
 
-El repositorio todavía no incluye fotografías de las pantallas. Para completar la presentación visual, crea una carpeta `docs/screenshots/` y agrega **capturas reales** de una ejecución local, de preferencia con resolución uniforme de unos 1440 × 900 px. No añadas imágenes vacías o generadas que simulen funcionalidad no verificada.
+El repositorio todavía no incluye fotografías de las pantallas. Para completar la presentación visual, utiliza la carpeta `docs/screenshots/` (ya preparada) y agrega **capturas reales** de una ejecución local, de preferencia con resolución uniforme de unos 1440 × 900 px. No añadas imágenes vacías o generadas que simulen funcionalidad no verificada.
 
 | Archivo sugerido | Pantalla | Qué mostrar |
 | --- | --- | --- |
