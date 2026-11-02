@@ -58,6 +58,7 @@ class RepositorioRestauranteJdbcTest {
                 }
                 stmt.execute(sql);
             }
+            stmt.execute("ALTER TABLE platillos DROP CHECK chk_platillo_id");
             stmt.execute("ALTER TABLE platillos MODIFY COLUMN id INT NOT NULL AUTO_INCREMENT");
         }
     }
