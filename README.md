@@ -18,7 +18,7 @@ Aplicación de demostración para portafolio que evolucionó desde una práctica
 - Consultar y gestionar pedidos mediante una API HTTP JSON local.
 - Conservar los precios históricos y la integridad de transacciones en MySQL.
 
-- El administrador puede crear y consultar cuentas individuales de empleados desde **Usuarios**, sin ver contraseñas en texto plano.
+- El administrador puede crear, consultar, activar y desactivar cuentas de empleados y restablecer sus contraseñas desde **Usuarios**, sin mostrar las claves ni los hashes. Las sesiones desactualizadas se revocan en la siguiente petición.
 
 Las reglas de validación y transición se implementan una sola vez en el módulo Java y se **reutilizan** desde Spring Boot.
 
@@ -113,7 +113,7 @@ No todos los cambios de estado están permitidos; consulta [docs/FLUJO_PEDIDOS.m
 
 ## Limitaciones y seguridad
 
-- Prototipo local con **login, roles y CSRF**, aún sin HTTPS, mitigación de fuerza bruta ni auditoría: no desplegarlo en un servidor público.
+- Prototipo local con **login, roles, CSRF y revocación de sesiones en siguiente petición**, aún sin HTTPS, mitigación de fuerza bruta ni auditoría: no desplegarlo en un servidor público.
 - El formulario web crea **un tipo de platillo por pedido**; la lógica Java y la API de repositorio ya admiten múltiples detalles y se ampliará la interfaz posteriormente.
 - La edición del catálogo y la gestión de usuarios requieren **rol ADMIN**; los roles ADMIN y EMPLEADO pueden operar pedidos. El entorno continúa siendo local.
 - El Dashboard calcula indicadores sobre el estado **actual** de los pedidos, no ventas cobradas; no hay fechas de ventas ni auditoría de cambios.
@@ -133,6 +133,6 @@ No todos los cambios de estado están permitidos; consulta [docs/FLUJO_PEDIDOS.m
 6. Dashboard, catálogo e historial visual con pruebas de navegación (**completada**).
 7. Crear, editar y desactivar platillos sin romper pedidos históricos (**completada**).
 8. Spring Security, inicio y cierre de sesión, usuarios BCrypt, roles y CSRF (**completada**).
-9. Gestión de cuentas (**9A: alta/listado de empleados en revisión**), auditoría, pruebas end-to-end y presentación final (**pendiente**).
+9. Gestión de cuentas (**9A: alta/listado completada; 9B: estado de empleados, contraseñas y revocación en revisión**); auditoría y pruebas end-to-end (**pendientes**).
 
 Para empezar consulta también [docs/WEB_SPRING_BOOT.md](docs/WEB_SPRING_BOOT.md) y [database/README.md](database/README.md).
