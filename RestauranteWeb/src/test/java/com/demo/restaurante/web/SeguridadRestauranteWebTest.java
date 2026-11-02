@@ -45,7 +45,7 @@ class SeguridadRestauranteWebTest {
     void anonimoNoPuedeEntrarAPedidosNiAPi() throws Exception {
         mvc.perform(get("/pedidos"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrlPattern("**/login"));
+                .andExpect(redirectedUrl("/login"));
         mvc.perform(get("/api/pedidos"))
                 .andExpect(status().is3xxRedirection());
     }
