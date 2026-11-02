@@ -36,7 +36,8 @@ public final class VigenciaSesionRestauranteFiltro extends OncePerRequestFilter 
             try {
                 UserDetails actual = usuarios.loadUserByUsername(original.getUsername());
                 if (!actual.isEnabled()
-                        || !original.getPassword().equals(actual.getPassword())
+                        || !(actual instanceof UsuarioRestaurantePrincipal actualizado)
+                        || !original.getHuellaClave().equals(actualizado.getHuellaClave())
                         || !original.getAuthorities().equals(actual.getAuthorities())) {
                     revocar(request, response);
                     return;
