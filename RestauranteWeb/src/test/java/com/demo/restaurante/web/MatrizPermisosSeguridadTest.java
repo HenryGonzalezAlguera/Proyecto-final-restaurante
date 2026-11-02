@@ -5,6 +5,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
+import static org.mockito.Mockito.when;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -19,6 +22,12 @@ class MatrizPermisosSeguridadTest {
     @MockitoBean ServicioRestauranteWeb pedidos;
     @MockitoBean AdministracionEmpleadosService empleados;
     @MockitoBean AuditoriaRestauranteService auditoria;
+
+    @BeforeEach
+    void preparar() throws Exception {
+        when(pedidos.listarPedidos()).thenReturn(List.of());
+        when(pedidos.listarPlatillos()).thenReturn(List.of());
+    }
 
     @Test
     @WithMockUser(roles = "EMPLEADO")
