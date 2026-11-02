@@ -1,139 +1,163 @@
-# Restaurante — Java, Spring Boot y MySQL
+# Restaurante | Sistema de gestión de pedidos
 
-Aplicación de demostración para portafolio que evolucionó desde una práctica de estructuras de datos hasta **seis pantallas web operativas**, **API REST local** y **seguridad por roles**, reutilizando el modelo de dominio original y la persistencia JDBC.
+[![Java Maven CI](https://github.com/HenryGonzalezAlguera/Proyecto-final-restaurante/actions/workflows/java-maven.yml/badge.svg?branch=main)](https://github.com/HenryGonzalezAlguera/Proyecto-final-restaurante/actions/workflows/java-maven.yml)
+![Java 17](https://img.shields.io/badge/Java-17-ED8B00?logo=openjdk&logoColor=white)
+![Spring Boot 4.1.2](https://img.shields.io/badge/Spring%20Boot-4.1.2-6DB33F?logo=springboot&logoColor=white)
+![MySQL 8](https://img.shields.io/badge/MySQL-8-4479A1?logo=mysql&logoColor=white)
+![Estado](https://img.shields.io/badge/Estado-demo%20local-64748B)
 
-> **Estado: prototipo local con autenticación.** Sin pagos, facturación ni datos reales. Por seguridad el servidor web se enlaza a `127.0.0.1` de forma predeterminada. **No exponer a Internet** sin incorporar seguridad, permisos y pruebas adicionales.
+**Aplicación web de gestión de pedidos para restaurantes**, desarrollada en Java, Spring Boot, Thymeleaf y MySQL. Incluye administración de platillos, flujo de preparación FIFO, dashboard operativo, API REST, control de acceso por roles y bitácora de operaciones.
 
-## Qué permite hacer
+> **Portfolio project · Local demo.** This Java/Spring Boot application showcases order management, JDBC transactions, role-based access control, REST endpoints, MySQL persistence, and automated tests. It is **not** a deployed SaaS or production POS.
 
-- Navegar por las páginas **Dashboard**, **Pedidos**, **Catálogo**, **Historial**, **Usuarios** y **Auditoría** desde un menú uniforme.
-- Administrar el catálogo en tarjetas: **crear, editar, desactivar y reactivar platillos** sin borrar el historial.
-- Consultar el catálogo activo en tarjetas con precios, costos y márgenes estimados.
-- Registrar un pedido desde el navegador: cliente, platillo y cantidad.
-- Filtrar el historial por estado o identificador, expandiendo el detalle de cada pedido.
-- Consultar indicadores de actividad y ranking de platillos solicitados; el valor de pedidos entregados **no equivale a ventas cobradas**.
-- Consultar estado, precio total y número de pedidos pendientes.
-- Procesar pendientes **FIFO**, marcar platos listos y entregar.
-- Cancelar pedidos que aún no están en preparación.
-- Consultar y gestionar pedidos mediante una API HTTP JSON local.
-- Conservar los precios históricos y la integridad de transacciones en MySQL.
+> **Alcance:** prototipo funcional para aprendizaje y portafolio. Escucha solo en `127.0.0.1`; no incluye pagos, facturación ni reservas. **No exponerlo públicamente** sin HTTPS y revisión de seguridad.
 
-- El administrador puede crear, consultar, activar y desactivar cuentas de empleados y restablecer sus contraseñas desde **Usuarios**, sin mostrar las claves ni los hashes. Las sesiones desactualizadas se revocan en la siguiente petición.
-- Consultar **Auditoría**: operaciones registradas posteriormente a cambios de pedidos, catálogo y cuentas; sin guardar contraseñas.
+## Vista general
 
-Las reglas de validación y transición se implementan una sola vez en el módulo Java y se **reutilizan** desde Spring Boot.
+| Área | Lo implementado |
+| --- | --- |
+| Pedidos | Registro, consulta, estados, cancelación válida y siguiente pendiente por FIFO |
+| Catálogo | Alta, edición, activación y desactivación sin alterar precios históricos |
+| Dashboard | Indicadores por estado, importe nominal de pedidos entregados y platillos destacados |
+| Historial | Búsqueda por pedido/cliente, filtro por estado y detalle de cada orden |
+| Usuarios | Roles `ADMIN`/`EMPLEADO`, alta y control de empleados, restablecimiento de claves |
+| Auditoría | Registro posterior a operaciones, actor, acción, referencia y fecha; lectura solo `ADMIN` |
+| Seguridad | Spring Security, BCrypt, CSRF, sesiones, revocación y límite local de intentos |
+| API REST | Consulta y gestión de pedidos en JSON con sesión autenticada y CSRF |
+
+### Capturas de pantalla
+
+Las capturas de la interfaz todavía **no están publicadas** en este repositorio. La [guía de capturas](docs/CAPTURAS.md) detalla las seis vistas recomendadas y cómo eliminar datos privados antes de subirlas. La ausencia de imágenes no afecta el funcionamiento ni las pruebas del proyecto.
+
+## Tecnologías
+
+| Capa | Herramientas |
+| --- | --- |
+| Lenguaje y dominio | Java 17, `BigDecimal`, validaciones y estados |
+| Backend | Spring Boot 4.1.2, Spring MVC, Spring Security |
+| Frontend | Thymeleaf, HTML y CSS responsivo |
+| Datos | MySQL 8 / JDBC / SQL parametrizado / InnoDB |
+| Pruebas | JUnit 5, MockMvc y pruebas JDBC sobre MySQL de CI |
+| Construcción y CI | Maven multimódulo, GitHub Actions |
 
 ## Arquitectura
 
-```text
-.
-├── pom.xml                       # Reactor Maven: dos módulos
-├── Restaurante/                  # Dominio, gestor Java, JDBC y pruebas
-├── RestauranteWeb/               # Spring Boot MVC, Thymeleaf y API JSON
-│   ├── pom.xml
-│   ├── src/main/java/com/demo/restaurante/web/
-│   ├── src/main/resources/templates/{pedidos,catalogo,historial,dashboard,usuarios,auditoria}.html
-│   ├── src/main/resources/static/css/restaurante.css
-│   └── src/test/java/com/demo/restaurante/web/
-├── database/                     # Esquema SQL y guía XAMPP
-└── docs/
+```mermaid
+flowchart TD
+    A["Navegador · Thymeleaf / sesiones"] --> B["Spring Security · roles y CSRF"]
+    E["Cliente de API autenticado"] --> B
+    B --> C["Controladores MVC / REST"]
+    C --> D["ServicioRestauranteWeb"]
+    D --> F["RepositorioRestauranteJdbc"]
+    F --> G[("MySQL · pedidos, platillos y detalles")]
+    C --> H["AdministracionEmpleadosService"]
+    H --> I[("MySQL · usuarios")]
+    C --> J["AuditoriaRestauranteService"]
+    J --> K[("MySQL · auditoria_operaciones")]
 ```
 
-| Tecnología | Uso |
-| --- | --- |
-| Java 17 | Modelo y lógica de negocio |
-| Spring Boot 4.1.2 | Aplicación web y API REST |
-| Spring MVC y Thymeleaf | Controladores y vistas HTML |
-| MySQL 8 + JDBC | Persistencia de datos |
-| Maven | Compilación de los dos módulos |
-| JUnit 5, MockMvc y GitHub Actions | Pruebas unitarias, SQL y HTTP |
+El proyecto utiliza un **reactor Maven de dos módulos**:
 
-## Seguridad y acceso
+- `Restaurante/`: entidades, ciclo de vida de pedidos y repositorio JDBC.
+- `RestauranteWeb/`: controladores MVC y REST, servicios, autenticación y vistas Thymeleaf.
+- `database/`: esquema, datos de demostración y migraciones incrementales.
+- `docs/`: detalles técnicos, guía de pruebas y recorrido funcional.
 
-Desde la fase 8 es obligatorio iniciar sesión para usar la aplicación. La fase 9D incorpora un límite local de cinco intentos fallidos por IP en 15 minutos, con bloqueo temporal de 15 minutos. Se utiliza **Spring Security, BCrypt, roles ADMIN/EMPLEADO y protección CSRF**, sin contraseñas predeterminadas en el repositorio. Importa `database/04_usuarios_seguridad.sql` y crea la primera cuenta administrativa mediante variables de entorno según **[docs/SEGURIDAD.md](docs/SEGURIDAD.md)**. Sin cuentas creadas, el sistema permanece cerrado.
+**Decisiones relevantes:** el pedido conserva una instantánea de nombre y precio de cada platillo; el registro del pedido con sus detalles y los cambios de estado usan transacciones JDBC; el siguiente pendiente se selecciona con bloqueo y `SKIP LOCKED`. El registro de auditoría se realiza **después de la operación**, por separado, por lo que **no es transaccional** con el cambio de negocio.
 
-## Compilar y probar
+[Ver arquitectura detallada](docs/ARQUITECTURA.md) · [Estados de pedidos](docs/FLUJO_PEDIDOS.md) · [Seguridad y sus límites](docs/SEGURIDAD.md)
 
-Requisitos: Java 17+, Maven 3.6.3+ y, para la modalidad persistente, MySQL 8.
+## Ejecución local
 
-```bash
-mvn -f pom.xml clean verify
-```
+**Requisitos:** JDK 17, Maven, MySQL 8 y acceso a phpMyAdmin o un cliente SQL. El proyecto usa por defecto el puerto `8085`.
 
-La comprobación de MySQL se ejecuta automáticamente en CI contra un contenedor aislado; localmente se omite si no se definen las variables `RESTAURANTE_TEST_DB_*`.
+1. Clona el repositorio y entra en la carpeta:
 
-## Ejecutar la aplicación web en XAMPP
+   ```bash
+   git clone https://github.com/HenryGonzalezAlguera/Proyecto-final-restaurante.git
+   cd Proyecto-final-restaurante
+   ```
 
-1. Abre [database/README.md](database/README.md) e importa `database/01_esquema.sql` en una base **independiente** llamada `restaurante_portafolio`.
-2. Importa también `database/02_datos_demo.sql` para disponer de cinco platillos y tres empleados ficticios (sin sobrescribir registros existentes).
-3. Crea un usuario MySQL específico `restaurante_app` con acceso a esa base; no reutilices las contraseñas de otros proyectos.
-4. Configura las variables `RESTAURANTE_DB_URL`, `RESTAURANTE_DB_USER`, `RESTAURANTE_DB_PASSWORD` solo en tu máquina, como indica la guía.
-5. Desde la raíz ejecuta:
+2. En una base **dedicada** `restaurante_portafolio`, prepara el esquema y las migraciones desde `database/` **en este orden**:
 
-```bash
-mvn -f pom.xml clean package
-java -jar RestauranteWeb/target/restaurante-web-1.0-SNAPSHOT.jar
-```
+   | Archivo | Objetivo |
+   | --- | --- |
+   | `01_esquema.sql` | Tablas iniciales |
+   | `02_datos_demo.sql` | Datos ficticios opcionales |
+   | `03_migracion_catalogo.sql` | Alta de platillos con ID automático |
+   | `04_usuarios_seguridad.sql` | Cuentas de acceso |
+   | `05_auditoria_operaciones.sql` | Bitácora operativa |
 
-6. Abre **http://127.0.0.1:8085/pedidos**. En el menú lateral encontrarás las demás páginas:
+   **Antes de migrar una base existente:** realiza un respaldo y detén Spring Boot. La migración 03 modifica temporalmente una restricción de clave foránea. Los scripts no están concebidos como un sistema automático de migraciones.
 
-**Importante para la fase 7:** ejecuta una sola vez `database/03_migracion_catalogo.sql` con tu cuenta administradora de phpMyAdmin. Permite IDs automáticos al registrar platillos y conserva registros anteriores. La cuenta `restaurante_app` no requiere permisos `ALTER`.
+3. Crea un usuario **MySQL técnico**, distinto de las cuentas del login web, con permisos mínimos `SELECT`, `INSERT` y `UPDATE` sobre las tablas de negocio; para `auditoria_operaciones`, bastan `SELECT` e `INSERT`. Configura las variables `RESTAURANTE_DB_URL`, `RESTAURANTE_DB_USER` y `RESTAURANTE_DB_PASSWORD` en tu entorno local; nunca publiques las contraseñas. La [guía de MySQL](database/README.md) contiene el procedimiento de PowerShell.
 
-**Rutas visuales:** `/dashboard` (indicadores), `/pedidos` (operaciones), `/catalogo` (menú), `/historial` (búsqueda y detalles), `/usuarios` (gestión de empleados, ADMIN), `/auditoria` (bitácora de operaciones, ADMIN). Los enlaces `/api/...` continúan disponibles como JSON en la sección Desarrollo.
+4. **Antes del primer arranque**, configura en esa misma terminal las variables para crear **una sola vez** la cuenta `ADMIN`, siguiendo [Seguridad — cuenta inicial](docs/SEGURIDAD.md#3-crear-primera-cuenta-administradora). Las variables de inicialización deben estar definidas **antes** de iniciar el JAR; no existen credenciales web predeterminadas.
 
-La interfaz informa si faltan credenciales o esquema. La aplicación **no crea automáticamente la base ni las tablas**. La inicialización de catálogo debe hacerse en MySQL o con la demostración JDBC explicada en `database/README.md`. Para el módulo original de consola:
+5. Compila y ejecuta en la misma terminal que contiene las variables de MySQL (y, solo para el primer arranque, las de bootstrap de administrador):
 
-```bash
-java -cp Restaurante/target/classes com.demo.restaurante.Restaurante
-```
+   ```bash
+   mvn -f pom.xml clean verify
+   java -jar RestauranteWeb/target/restaurante-web-1.0-SNAPSHOT.jar
+   ```
 
-## API REST de demostración
+6. Abre **http://127.0.0.1:8085/login**. Después de comprobar el acceso, detén la aplicación y usa una **nueva terminal** para futuras ejecuciones sin conservar las variables de bootstrap de la contraseña inicial, como indica la guía de seguridad.
 
-| Método | Ruta | Acción |
+> Para una demostración guiada sin datos personales, consulta [DEMO_PORTAFOLIO.md](docs/DEMO_PORTAFOLIO.md).
+
+## Roles y permisos
+
+| Función | `ADMIN` | `EMPLEADO` |
+| --- | :---: | :---: |
+| Pedidos, dashboard e historial | ✅ | ✅ |
+| API de pedidos con sesión y CSRF | ✅ | ✅ |
+| Crear/editar/desactivar platillos | ✅ | — |
+| Administrar cuentas de empleados | ✅ | — |
+| Consultar auditoría | ✅ | — |
+| Consultar `GET /api/platillos` (incluye costos) | ✅ | — |
+
+Los permisos se aplican **en el servidor**. Las contraseñas se almacenan mediante BCrypt, y las sesiones de empleados se revocan en la siguiente petición tras desactivación o cambio de hash. La limitación de intentos de login opera por IP y **solo en memoria**; no es un sistema distribuido de protección.
+
+## API REST (JSON)
+
+| Método | Ruta | Uso |
 | --- | --- | --- |
-| GET | `/api/platillos` | Catálogo |
-| GET | `/api/pedidos` | Lista de pedidos |
-| GET | `/api/pedidos/{id}` | Consulta de pedido |
-| POST | `/api/pedidos` | Crear pedido |
-| POST | `/api/pedidos/{id}/estado` | Avanzar estado |
-| POST | `/api/pedidos/siguiente` | Preparar siguiente (FIFO) |
-
-Cuerpo para crear un pedido:
+| GET | `/api/pedidos` | Listado de pedidos |
+| GET | `/api/pedidos/{id}` | Pedido y detalles |
+| POST | `/api/pedidos` | Registrar pedido |
+| POST | `/api/pedidos/{id}/estado` | Cambiar estado válido |
+| POST | `/api/pedidos/siguiente` | Iniciar siguiente pendiente |
+| GET | `/api/platillos` | Lista de platillos (solo `ADMIN`) |
 
 ```json
-{"clienteId": 1, "platilloId": 1, "cantidad": 2}
+{
+  "clienteId": 1,
+  "platilloId": 1,
+  "cantidad": 2
+}
 ```
 
-Cuerpo para cambiar estado:
+Los `POST` requieren **cookie de sesión y token CSRF**; no son endpoints públicos anónimos. El formulario web permite un tipo de platillo por pedido, aunque el módulo de dominio admite varios detalles.
 
-```json
-{"estado": "LISTO"}
-```
+## Calidad y pruebas
 
-No todos los cambios de estado están permitidos; consulta [docs/FLUJO_PEDIDOS.md](docs/FLUJO_PEDIDOS.md).
+La ejecución `mvn -f pom.xml clean verify` construye ambos módulos. **GitHub Actions** también levanta MySQL 8.4 en un contenedor aislado `restaurante_ci` para verificar JDBC, estados, usuarios y auditoría, y utiliza MockMvc para probar rutas, roles, sesiones y CSRF.
 
-## Limitaciones y seguridad
+[Consultar ejecuciones de CI](https://github.com/HenryGonzalezAlguera/Proyecto-final-restaurante/actions/workflows/java-maven.yml)
 
-- Prototipo local con **login, roles, CSRF y revocación de sesiones en siguiente petición**, con mitigación local de intentos de inicio de sesión, pero aún sin HTTPS ni auditoría transaccional: no desplegarlo en un servidor público.
-- El formulario web crea **un tipo de platillo por pedido**; la lógica Java y la API de repositorio ya admiten múltiples detalles y se ampliará la interfaz posteriormente.
-- La edición del catálogo y la gestión de usuarios requieren **rol ADMIN**; los roles ADMIN y EMPLEADO pueden operar pedidos. El entorno continúa siendo local.
-- El Dashboard calcula indicadores sobre el estado **actual** de los pedidos, no ventas cobradas; no hay fechas de ventas ni auditoría de cambios.
-- El historial filtra en memoria para una demostración local: en bases voluminosas necesitará paginación y filtros SQL.
-- No hay caja, pagos, IVA, inventario, facturación ni reservas; las sesiones HTTP sí están implementadas.
-- No se guardan credenciales reales en GitHub.
-- La demostración de consola y el componente web son independientes: uno utiliza datos ficticios en memoria y el otro consulta MySQL.
-- Las pruebas HTTP usan servicios simulados y las de persistencia usan una base MySQL temporal en GitHub Actions.
+## Límites conocidos y próximas mejoras
 
-## Historia de evolución
+- Aplicación **local**, sin URL de demo pública ni despliegue productivo.
+- Sin pagos, caja, reservas, inventario, impuestos o facturación electrónica.
+- El dashboard presenta **valor de pedidos entregados**, no ingresos efectivamente cobrados.
+- Historial con filtrado en memoria; requeriría paginación SQL para grandes volúmenes.
+- Auditoría **no atómica** con las operaciones, ni diseñada para requisitos forenses.
+- Falta HTTPS, cookies `Secure`, limitación distribuida de intentos, observabilidad y revisión adicional antes de publicar.
 
-1. Correcciones del ejercicio inicial, documentación y CI.
-2. Modelo del dominio y validaciones.
-3. Ciclo de vida de pedidos y FIFO.
-4. Persistencia transaccional con JDBC y pruebas de integración.
-5. Aplicación web de pedidos y API con Spring Boot (**completada**).
-6. Dashboard, catálogo e historial visual con pruebas de navegación (**completada**).
-7. Crear, editar y desactivar platillos sin romper pedidos históricos (**completada**).
-8. Spring Security, inicio y cierre de sesión, usuarios BCrypt, roles y CSRF (**completada**).
-9. Gestión de cuentas (**9A y 9B completadas**), auditoría (**9C completada**) y protección contra intentos repetidos de inicio de sesión y pruebas de permisos (**9D en revisión**).
+## Documentación adicional
 
-Para empezar consulta también [docs/WEB_SPRING_BOOT.md](docs/WEB_SPRING_BOOT.md) y [database/README.md](database/README.md).
+[Arquitectura](docs/ARQUITECTURA.md) · [Demo guiada](docs/DEMO_PORTAFOLIO.md) · [Capturas pendientes](docs/CAPTURAS.md) · [Dominio](docs/DOMINIO.md) · [Flujo de pedidos](docs/FLUJO_PEDIDOS.md) · [Seguridad](docs/SEGURIDAD.md) · [Configuración de MySQL](database/README.md)
+
+---
+
+**Proyecto de portafolio:** [HenryGonzalezAlguera](https://github.com/HenryGonzalezAlguera) · Java / Spring Boot / MySQL.

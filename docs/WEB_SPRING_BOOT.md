@@ -1,4 +1,6 @@
-# Fase 5 — Spring Boot MVC y API REST
+# Evolución de RestauranteWeb — Spring Boot MVC y API REST
+
+> **Nota:** las secciones de fases 5 y 6 documentan decisiones y limitaciones de esas versiones iniciales; no describen por sí solas el estado actual. Hoy existen autenticación por roles, gestión de empleados, auditoría y límite de intentos, explicados en [SEGURIDAD.md](SEGURIDAD.md) y [ARQUITECTURA.md](ARQUITECTURA.md).
 
 ## Decisión arquitectónica
 

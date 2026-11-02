@@ -1,4 +1,6 @@
-# Fase 3 — Gestión y ciclo de vida de pedidos
+# Gestión y ciclo de vida de pedidos (origen: fase 3)
+
+> Este documento se centra en la **lógica del dominio** creada en la fase 3. Su máquina de estados continúa vigente en la aplicación web actual. Consulta [ARQUITECTURA.md](ARQUITECTURA.md) para el flujo entre Spring Boot y JDBC.
 
 ## Objetivo y alcance
 
