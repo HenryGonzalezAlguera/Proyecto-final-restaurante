@@ -170,3 +170,14 @@ td{border-bottom:1px solid #eff1f3;padding:16px 19px;font-size:12px;color:#626e7
 .logout-form{margin-top:15px}.logout-button{width:100%;background:#203c47;border:1px solid #527078;color:#eaf2f4;font-size:12px;text-align:left}
 .logout-button:hover{background:#304b55}
 @media(max-width:680px){.auth-card{padding:30px 23px}.logout-form{margin-top:8px}}
+
+/* Fase 9A — Alta y listado de cuentas de empleados */
+.employee-create-panel{margin-bottom:25px;padding:27px 29px}
+.employee-create-panel .panel-desc{margin:10px 0 22px}
+.employee-create-form{display:grid;grid-template-columns:minmax(180px,1fr) minmax(210px,1fr) auto;gap:16px;align-items:end}
+.employee-create-form .catalog-field label{display:block;margin:0 0 9px}
+.employee-create-form .btn{height:44px;margin:0}
+@media(max-width:960px){.employee-create-form{grid-template-columns:1fr 1fr}.employee-create-form .btn{width:max-content}}
+@media(max-width:680px){.employee-create-panel{padding:19px}.employee-create-form{display:flex;flex-direction:column;align-items:stretch}.employee-create-form .btn{width:100%}}
+
+.restricted-label{font-size:23px!important}

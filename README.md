@@ -1,12 +1,12 @@
 # Restaurante — Java, Spring Boot y MySQL
 
-Aplicación de demostración para portafolio que evolucionó desde una práctica de estructuras de datos hasta **cuatro pantallas web operativas**, **API REST local** y **seguridad por roles**, reutilizando el modelo de dominio original y la persistencia JDBC.
+Aplicación de demostración para portafolio que evolucionó desde una práctica de estructuras de datos hasta **cinco pantallas web operativas**, **API REST local** y **seguridad por roles**, reutilizando el modelo de dominio original y la persistencia JDBC.
 
-> **Estado: prototipo local.** Sin autenticación, pagos, facturación ni datos reales. Por seguridad el servidor web se enlaza a `127.0.0.1` de forma predeterminada. **No exponer a Internet** sin incorporar seguridad, permisos y pruebas adicionales.
+> **Estado: prototipo local con autenticación.** Sin pagos, facturación ni datos reales. Por seguridad el servidor web se enlaza a `127.0.0.1` de forma predeterminada. **No exponer a Internet** sin incorporar seguridad, permisos y pruebas adicionales.
 
 ## Qué permite hacer
 
-- Navegar por las páginas **Dashboard**, **Pedidos**, **Catálogo** e **Historial** desde un menú uniforme.
+- Navegar por las páginas **Dashboard**, **Pedidos**, **Catálogo**, **Historial** y **Usuarios** desde un menú uniforme.
 - Administrar el catálogo en tarjetas: **crear, editar, desactivar y reactivar platillos** sin borrar el historial.
 - Consultar el catálogo activo en tarjetas con precios, costos y márgenes estimados.
 - Registrar un pedido desde el navegador: cliente, platillo y cantidad.
@@ -17,6 +17,8 @@ Aplicación de demostración para portafolio que evolucionó desde una práctica
 - Cancelar pedidos que aún no están en preparación.
 - Consultar y gestionar pedidos mediante una API HTTP JSON local.
 - Conservar los precios históricos y la integridad de transacciones en MySQL.
+
+- El administrador puede crear y consultar cuentas individuales de empleados desde **Usuarios**, sin ver contraseñas en texto plano.
 
 Las reglas de validación y transición se implementan una sola vez en el módulo Java y se **reutilizan** desde Spring Boot.
 
@@ -29,7 +31,7 @@ Las reglas de validación y transición se implementan una sola vez en el módul
 ├── RestauranteWeb/               # Spring Boot MVC, Thymeleaf y API JSON
 │   ├── pom.xml
 │   ├── src/main/java/com/demo/restaurante/web/
-│   ├── src/main/resources/templates/{pedidos,catalogo,historial,dashboard}.html
+│   ├── src/main/resources/templates/{pedidos,catalogo,historial,dashboard,usuarios}.html
 │   ├── src/main/resources/static/css/restaurante.css
 │   └── src/test/java/com/demo/restaurante/web/
 ├── database/                     # Esquema SQL y guía XAMPP
@@ -76,7 +78,7 @@ java -jar RestauranteWeb/target/restaurante-web-1.0-SNAPSHOT.jar
 
 **Importante para la fase 7:** ejecuta una sola vez `database/03_migracion_catalogo.sql` con tu cuenta administradora de phpMyAdmin. Permite IDs automáticos al registrar platillos y conserva registros anteriores. La cuenta `restaurante_app` no requiere permisos `ALTER`.
 
-**Rutas visuales:** `/dashboard` (indicadores), `/pedidos` (operaciones), `/catalogo` (menú), `/historial` (búsqueda y detalles). Los enlaces `/api/...` continúan disponibles como JSON en la sección Desarrollo.
+**Rutas visuales:** `/dashboard` (indicadores), `/pedidos` (operaciones), `/catalogo` (menú), `/historial` (búsqueda y detalles), `/usuarios` (alta y listado de empleados, ADMIN). Los enlaces `/api/...` continúan disponibles como JSON en la sección Desarrollo.
 
 La interfaz informa si faltan credenciales o esquema. La aplicación **no crea automáticamente la base ni las tablas**. La inicialización de catálogo debe hacerse en MySQL o con la demostración JDBC explicada en `database/README.md`. Para el módulo original de consola:
 
@@ -113,10 +115,10 @@ No todos los cambios de estado están permitidos; consulta [docs/FLUJO_PEDIDOS.m
 
 - Prototipo local con **login, roles y CSRF**, aún sin HTTPS, mitigación de fuerza bruta ni auditoría: no desplegarlo en un servidor público.
 - El formulario web crea **un tipo de platillo por pedido**; la lógica Java y la API de repositorio ya admiten múltiples detalles y se ampliará la interfaz posteriormente.
-- La edición del catálogo requiere **rol ADMIN**; los roles ADMIN y EMPLEADO pueden operar pedidos. El entorno continúa siendo local.
+- La edición del catálogo y la gestión de usuarios requieren **rol ADMIN**; los roles ADMIN y EMPLEADO pueden operar pedidos. El entorno continúa siendo local.
 - El Dashboard calcula indicadores sobre el estado **actual** de los pedidos, no ventas cobradas; no hay fechas de ventas ni auditoría de cambios.
 - El historial filtra en memoria para una demostración local: en bases voluminosas necesitará paginación y filtros SQL.
-- No hay caja, pagos, IVA, inventario, sesiones de usuario, facturación ni reservas.
+- No hay caja, pagos, IVA, inventario, facturación ni reservas; las sesiones HTTP sí están implementadas.
 - No se guardan credenciales reales en GitHub.
 - La demostración de consola y el componente web son independientes: uno utiliza datos ficticios en memoria y el otro consulta MySQL.
 - Las pruebas HTTP usan servicios simulados y las de persistencia usan una base MySQL temporal en GitHub Actions.
@@ -128,9 +130,9 @@ No todos los cambios de estado están permitidos; consulta [docs/FLUJO_PEDIDOS.m
 3. Ciclo de vida de pedidos y FIFO.
 4. Persistencia transaccional con JDBC y pruebas de integración.
 5. Aplicación web de pedidos y API con Spring Boot (**completada**).
-6. Dashboard, catálogo e historial visual con pruebas de navegación (**fase actual**).
-7. Crear, editar y desactivar platillos sin romper pedidos históricos (**fase actual**).
-8. Spring Security, inicio y cierre de sesión, usuarios BCrypt, roles y CSRF (**fase actual**).
-9. Gestión de cuentas, auditoría, pruebas end-to-end y presentación final (**pendiente**).
+6. Dashboard, catálogo e historial visual con pruebas de navegación (**completada**).
+7. Crear, editar y desactivar platillos sin romper pedidos históricos (**completada**).
+8. Spring Security, inicio y cierre de sesión, usuarios BCrypt, roles y CSRF (**completada**).
+9. Gestión de cuentas (**9A: alta/listado de empleados en revisión**), auditoría, pruebas end-to-end y presentación final (**pendiente**).
 
 Para empezar consulta también [docs/WEB_SPRING_BOOT.md](docs/WEB_SPRING_BOOT.md) y [database/README.md](database/README.md).
