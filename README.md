@@ -1,12 +1,12 @@
 # Restaurante — Java, Spring Boot y MySQL
 
-Aplicación de demostración para portafolio que evolucionó desde una práctica de estructuras de datos hasta **cuatro pantallas web operativas**, **API REST local** y **seguridad por roles**, reutilizando el modelo de dominio original y la persistencia JDBC.
+Aplicación de demostración para portafolio que evolucionó desde una práctica de estructuras de datos hasta **cinco pantallas web operativas**, **API REST local** y **seguridad por roles**, reutilizando el modelo de dominio original y la persistencia JDBC.
 
 > **Estado: prototipo local con autenticación.** Sin pagos, facturación ni datos reales. Por seguridad el servidor web se enlaza a `127.0.0.1` de forma predeterminada. **No exponer a Internet** sin incorporar seguridad, permisos y pruebas adicionales.
 
 ## Qué permite hacer
 
-- Navegar por las páginas **Dashboard**, **Pedidos**, **Catálogo** e **Historial** desde un menú uniforme.
+- Navegar por las páginas **Dashboard**, **Pedidos**, **Catálogo**, **Historial** y **Usuarios** desde un menú uniforme.
 - Administrar el catálogo en tarjetas: **crear, editar, desactivar y reactivar platillos** sin borrar el historial.
 - Consultar el catálogo activo en tarjetas con precios, costos y márgenes estimados.
 - Registrar un pedido desde el navegador: cliente, platillo y cantidad.
@@ -18,7 +18,9 @@ Aplicación de demostración para portafolio que evolucionó desde una práctica
 - Consultar y gestionar pedidos mediante una API HTTP JSON local.
 - Conservar los precios históricos y la integridad de transacciones en MySQL.
 
-- El administrador puede crear y consultar cuentas individuales de empleados desde **Usuarios**, sin ver contraseñas en texto plano.\n\nLas reglas de validación y transición se implementan una sola vez en el módulo Java y se **reutilizan** desde Spring Boot.
+- El administrador puede crear y consultar cuentas individuales de empleados desde **Usuarios**, sin ver contraseñas en texto plano.
+
+Las reglas de validación y transición se implementan una sola vez en el módulo Java y se **reutilizan** desde Spring Boot.
 
 ## Arquitectura
 
@@ -29,7 +31,7 @@ Aplicación de demostración para portafolio que evolucionó desde una práctica
 ├── RestauranteWeb/               # Spring Boot MVC, Thymeleaf y API JSON
 │   ├── pom.xml
 │   ├── src/main/java/com/demo/restaurante/web/
-│   ├── src/main/resources/templates/{pedidos,catalogo,historial,dashboard}.html
+│   ├── src/main/resources/templates/{pedidos,catalogo,historial,dashboard,usuarios}.html
 │   ├── src/main/resources/static/css/restaurante.css
 │   └── src/test/java/com/demo/restaurante/web/
 ├── database/                     # Esquema SQL y guía XAMPP
