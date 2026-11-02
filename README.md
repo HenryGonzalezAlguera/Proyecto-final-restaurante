@@ -92,14 +92,16 @@ El proyecto utiliza un **reactor Maven de dos módulos**:
 
 3. Crea un usuario **MySQL técnico**, distinto de las cuentas del login web, con permisos mínimos `SELECT`, `INSERT` y `UPDATE` sobre las tablas de negocio; para `auditoria_operaciones`, bastan `SELECT` e `INSERT`. Configura las variables `RESTAURANTE_DB_URL`, `RESTAURANTE_DB_USER` y `RESTAURANTE_DB_PASSWORD` en tu entorno local; nunca publiques las contraseñas. La [guía de MySQL](database/README.md) contiene el procedimiento de PowerShell.
 
-4. Compila y ejecuta:
+4. **Antes del primer arranque**, configura en esa misma terminal las variables para crear **una sola vez** la cuenta `ADMIN`, siguiendo [Seguridad — cuenta inicial](docs/SEGURIDAD.md#3-crear-primera-cuenta-administradora). Las variables de inicialización deben estar definidas **antes** de iniciar el JAR; no existen credenciales web predeterminadas.
+
+5. Compila y ejecuta en la misma terminal que contiene las variables de MySQL (y, solo para el primer arranque, las de bootstrap de administrador):
 
    ```bash
    mvn -f pom.xml clean verify
    java -jar RestauranteWeb/target/restaurante-web-1.0-SNAPSHOT.jar
    ```
 
-5. Inicializa **una sola vez** la primera cuenta administrativa usando las variables de entorno descritas en [Seguridad — cuenta inicial](docs/SEGURIDAD.md#3-crear-primera-cuenta-administradora). No existen credenciales predeterminadas. Inicia sesión en **http://127.0.0.1:8085/login**.
+6. Abre **http://127.0.0.1:8085/login**. Después de comprobar el acceso, detén la aplicación y usa una **nueva terminal** para futuras ejecuciones sin conservar las variables de bootstrap de la contraseña inicial, como indica la guía de seguridad.
 
 > Para una demostración guiada sin datos personales, consulta [DEMO_PORTAFOLIO.md](docs/DEMO_PORTAFOLIO.md).
 
