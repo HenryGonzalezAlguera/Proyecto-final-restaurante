@@ -10,6 +10,7 @@ import com.demo.restaurante.DetallePedido;
 import com.demo.restaurante.EstadoPedido;
 import com.demo.restaurante.Pedido;
 import com.demo.restaurante.Platillo;
+import com.demo.restaurante.RegistroPlatillo;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.List;
@@ -44,7 +45,7 @@ class VistasRestauranteWebTest {
 
     @Test
     void catalogoRenderizaTarjetasConPreciosYMargenes() throws Exception {
-        when(servicio.listarPlatillos()).thenReturn(List.of(platillo()));
+        when(servicio.listarCatalogoAdministracion()).thenReturn(List.of(new RegistroPlatillo(platillo(), true)));
         mvc.perform(get("/catalogo")).andExpect(status().isOk())
                 .andExpect(view().name("catalogo"))
                 .andExpect(content().string(containsString("Catálogo de platillos")))
@@ -93,7 +94,7 @@ class VistasRestauranteWebTest {
 
     @Test
     void lasVistasMuestranErrorSinExponerDatosSql() throws Exception {
-        when(servicio.listarPlatillos()).thenThrow(new SQLException("password: SENSIBLE"));
+        when(servicio.listarCatalogoAdministracion()).thenThrow(new SQLException("password: SENSIBLE"));
         when(servicio.listarPedidos()).thenThrow(new SQLException("password: SENSIBLE"));
         for (String url : List.of("/catalogo", "/historial", "/dashboard")) {
             mvc.perform(get(url)).andExpect(status().isOk())

@@ -7,6 +7,7 @@ Aplicación de demostración para portafolio que evolucionó desde una práctica
 ## Qué permite hacer
 
 - Navegar por las páginas **Dashboard**, **Pedidos**, **Catálogo** e **Historial** desde un menú uniforme.
+- Administrar el catálogo en tarjetas: **crear, editar, desactivar y reactivar platillos** sin borrar el historial.
 - Consultar el catálogo activo en tarjetas con precios, costos y márgenes estimados.
 - Registrar un pedido desde el navegador: cliente, platillo y cantidad.
 - Filtrar el historial por estado o identificador, expandiendo el detalle de cada pedido.
@@ -69,6 +70,8 @@ java -jar RestauranteWeb/target/restaurante-web-1.0-SNAPSHOT.jar
 
 6. Abre **http://127.0.0.1:8085/pedidos**. En el menú lateral encontrarás las demás páginas:
 
+**Importante para la fase 7:** ejecuta una sola vez `database/03_migracion_catalogo.sql` con tu cuenta administradora de phpMyAdmin. Permite IDs automáticos al registrar platillos y conserva registros anteriores. La cuenta `restaurante_app` no requiere permisos `ALTER`.
+
 **Rutas visuales:** `/dashboard` (indicadores), `/pedidos` (operaciones), `/catalogo` (menú), `/historial` (búsqueda y detalles). Los enlaces `/api/...` continúan disponibles como JSON en la sección Desarrollo.
 
 La interfaz informa si faltan credenciales o esquema. La aplicación **no crea automáticamente la base ni las tablas**. La inicialización de catálogo debe hacerse en MySQL o con la demostración JDBC explicada en `database/README.md`. Para el módulo original de consola:
@@ -106,7 +109,7 @@ No todos los cambios de estado están permitidos; consulta [docs/FLUJO_PEDIDOS.m
 
 - Prototipo local **sin sistema de acceso** ni protección CSRF: no desplegarlo en un servidor público.
 - El formulario web crea **un tipo de platillo por pedido**; la lógica Java y la API de repositorio ya admiten múltiples detalles y se ampliará la interfaz posteriormente.
-- El catálogo de esta fase es de **consulta**, todavía no incluye edición ni desactivación de platillos desde la web.
+- Las operaciones de catálogo están disponibles solo en **entorno local**. Todavía no existe inicio de sesión, roles ni protección CSRF; no desplegar públicamente hasta corregirlo.
 - El Dashboard calcula indicadores sobre el estado **actual** de los pedidos, no ventas cobradas; no hay fechas de ventas ni auditoría de cambios.
 - El historial filtra en memoria para una demostración local: en bases voluminosas necesitará paginación y filtros SQL.
 - No hay caja, pagos, IVA, inventario, sesiones de usuario, facturación ni reservas.
@@ -122,6 +125,7 @@ No todos los cambios de estado están permitidos; consulta [docs/FLUJO_PEDIDOS.m
 4. Persistencia transaccional con JDBC y pruebas de integración.
 5. Aplicación web de pedidos y API con Spring Boot (**completada**).
 6. Dashboard, catálogo e historial visual con pruebas de navegación (**fase actual**).
-7. CRUD de catálogo, seguridad, paginación, pruebas end-to-end y presentación final (**pendiente**).
+7. Crear, editar y desactivar platillos sin romper pedidos históricos (**fase actual**).
+8. Seguridad, roles, CSRF, paginación, pruebas end-to-end y presentación final (**pendiente**).
 
 Para empezar consulta también [docs/WEB_SPRING_BOOT.md](docs/WEB_SPRING_BOOT.md) y [database/README.md](database/README.md).

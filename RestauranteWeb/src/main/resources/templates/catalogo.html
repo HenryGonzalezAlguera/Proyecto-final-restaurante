@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <meta name="description" content="Catálogo de platillos y márgenes estimados."/>
+  <meta name="description" content="Catálogo y administración local de platillos."/>
   <title>Restaurante | Catálogo</title>
   <link rel="stylesheet" th:href="@{/css/restaurante.css}" href="/css/restaurante.css"/>
 </head>
@@ -12,31 +12,109 @@
 <main class="main"><header th:replace="~{fragmentos/navegacion :: encabezado('Catálogo')}"></header>
 <div class="content">
   <div class="page-heading">
-    <div><p class="eyebrow">MENÚ Y COSTOS</p><h1>Catálogo de platillos</h1>
-      <p class="subtitle">Consulta precios, costos y márgenes unitarios del menú activo.</p></div>
+    <div>
+      <p class="eyebrow">MENÚ Y COSTOS</p><h1>Catálogo de platillos</h1>
+      <p class="subtitle">Administra los precios y la disponibilidad del menú sin alterar pedidos históricos.</p>
+    </div>
     <a class="btn btn-outline" th:href="@{/pedidos}">Crear pedido →</a>
   </div>
   <div class="notice error" role="alert" th:if="${errorConexion}" th:text="${errorConexion}"></div>
+  <div class="notice error" role="alert" th:if="${error}" th:text="${error}"></div>
+  <div class="notice success" role="status" th:if="${mensaje}" th:text="${mensaje}"></div>
+
   <section class="stats" aria-label="Resumen del catálogo">
-    <div class="stat"><span class="stat-label">Platillos activos</span><strong th:text="${platillos.size()}">0</strong><small>Disponibles en MySQL</small></div>
-    <div class="stat"><span class="stat-label">Moneda</span><strong>CRC</strong><small>Colones costarricenses</small></div>
-    <div class="stat"><span class="stat-label">Estado del catálogo</span><strong>Activo</strong><small>Solo consulta, sin edición en esta fase</small></div>
+    <div class="stat"><span class="stat-label">Platillos activos</span>
+      <strong th:text="${platillos.size()}">0</strong><small>Disponibles para pedidos</small></div>
+    <div class="stat"><span class="stat-label">Platillos inactivos</span>
+      <strong th:text="${inactivos}">0</strong><small>Se conservan para el historial</small></div>
+    <div class="stat"><span class="stat-label">Moneda del catálogo</span>
+      <strong>CRC</strong><small>Colones costarricenses</small></div>
   </section>
-  <div class="catalog-grid" th:unless="${platillos.isEmpty()}">
-    <article class="dish-card" th:each="p : ${platillos}">
-      <div class="dish-top"><span class="dish-symbol" aria-hidden="true">♨</span><span class="active-label">● Disponible</span></div>
-      <div class="dish-id" th:text="${'PLATILLO #' + p.id}">PLATILLO #1</div>
-      <h2 th:text="${p.nombre}">Arroz con pollo</h2>
-      <div class="dish-price" th:text="${'₡' + p.precio}">₡4.000</div>
+
+  <section class="panel catalog-create-panel" aria-labelledby="titulo-nuevo">
+    <div class="catalog-create-intro">
+      <div>
+        <p class="panel-kicker">ADMINISTRACIÓN DEL MENÚ</p>
+        <h2 id="titulo-nuevo">Agregar nuevo platillo</h2>
+        <p class="panel-desc">El código se asigna automáticamente. Usa importes con máximo dos decimales.</p>
+      </div>
+      <span class="create-icon" aria-hidden="true">＋</span>
+    </div>
+    <form method="post" th:action="@{/catalogo/nuevo}" class="catalog-create-form">
+      <div class="catalog-field catalog-name">
+        <label for="nombre-nuevo">Nombre del platillo</label>
+        <input id="nombre-nuevo" type="text" name="nombre" maxlength="150"
+               required placeholder="Ej. Hamburguesa de la Casa"/>
+      </div>
+      <div class="catalog-field">
+        <label for="costo-nuevo">Costo ingredientes (₡)</label>
+        <input id="costo-nuevo" name="costo" type="number" min="0" max="9999999999.99"
+               step="0.01" required placeholder="1500.00"/>
+      </div>
+      <div class="catalog-field">
+        <label for="precio-nuevo">Precio de venta (₡)</label>
+        <input id="precio-nuevo" name="precio" type="number" min="0.01" max="9999999999.99"
+               step="0.01" required placeholder="3000.00"/>
+      </div>
+      <button class="btn btn-primary" type="submit">Agregar platillo ＋</button>
+    </form>
+  </section>
+
+  <div class="catalog-section-head">
+    <div><p class="panel-kicker">PRODUCTOS EN CARTA</p>
+      <h2>Platillos registrados <span class="counter" th:text="${catalogoAdmin.size()}">0</span></h2>
+    </div>
+    <p class="hint-text">Los inactivos no aparecen en el selector de pedidos.</p>
+  </div>
+  <div class="catalog-grid" th:unless="${catalogoAdmin.isEmpty()}">
+    <article class="dish-card catalog-manage-card" th:each="r : ${catalogoAdmin}"
+             th:classappend="${!r.activo()} ? ' dish-inactive' : ''">
+      <div class="dish-top">
+        <span class="dish-symbol" aria-hidden="true">♨</span>
+        <span class="active-label" th:if="${r.activo()}">● Disponible</span>
+        <span class="active-label inactive-label" th:if="${!r.activo()}">● Inactivo</span>
+      </div>
+      <div class="dish-id" th:text="${'PLATILLO #' + r.platillo().id}">PLATILLO #1</div>
+      <h2 th:text="${r.platillo().nombre}">Platillo</h2>
+      <div class="dish-price" th:text="${'₡' + r.platillo().precio}">₡0.00</div>
       <div class="dish-divider"></div>
-      <div class="dish-row"><span>Costo de ingredientes</span><strong th:text="${'₡' + p.costoIngredientes}">₡0</strong></div>
-      <div class="dish-row"><span>Margen bruto unitario</span><strong th:text="${'₡' + p.margenBrutoUnitario}">₡0</strong></div>
-      <a class="dish-action" th:href="@{/pedidos}">Agregar desde pedidos →</a>
+      <div class="dish-row"><span>Costo de ingredientes</span>
+        <strong th:text="${'₡' + r.platillo().costoIngredientes}">₡0.00</strong></div>
+      <div class="dish-row"><span>Margen bruto unitario</span>
+        <strong th:text="${'₡' + r.platillo().margenBrutoUnitario}">₡0.00</strong></div>
+
+      <div class="catalog-actions">
+        <a class="dish-action" th:if="${r.activo()}" th:href="@{/pedidos}">Agregar a pedido →</a>
+        <form method="post" th:action="@{/catalogo/{id}/disponibilidad(id=${r.platillo().id})}">
+          <input type="hidden" name="accion" th:value="${r.activo()} ? 'desactivar' : 'activar'"/>
+          <button type="submit" class="mini-btn"
+                  th:classappend="${r.activo()} ? ' danger' : ''"
+                  th:text="${r.activo()} ? 'Desactivar' : 'Activar'">Desactivar</button>
+        </form>
+      </div>
+
+      <details class="catalog-editor">
+        <summary>Editar información del platillo <span aria-hidden="true">⌄</span></summary>
+        <form method="post" th:action="@{/catalogo/{id}/editar(id=${r.platillo().id})}">
+          <label th:for="${'nombre-' + r.platillo().id}">Nombre</label>
+          <input th:id="${'nombre-' + r.platillo().id}" name="nombre" type="text"
+                 maxlength="150" required th:value="${r.platillo().nombre}"/>
+          <label th:for="${'costo-' + r.platillo().id}">Costo ingredientes (₡)</label>
+          <input th:id="${'costo-' + r.platillo().id}" name="costo" type="number"
+                 min="0" max="9999999999.99" step="0.01" required
+                 th:value="${r.platillo().costoIngredientes}"/>
+          <label th:for="${'precio-' + r.platillo().id}">Precio de venta (₡)</label>
+          <input th:id="${'precio-' + r.platillo().id}" name="precio" type="number"
+                 min="0.01" max="9999999999.99" step="0.01" required
+                 th:value="${r.platillo().precio}"/>
+          <button type="submit" class="btn btn-primary">Guardar cambios →</button>
+        </form>
+      </details>
     </article>
   </div>
-  <section class="panel empty-panel" th:if="${platillos.isEmpty() and errorConexion == null}">
-    <h2>No hay platillos activos</h2><p>Importa el archivo de datos de demostración en la base MySQL.</p>
+  <section class="panel empty-panel" th:if="${catalogoAdmin.isEmpty() and errorConexion == null}">
+    <h2>El catálogo está vacío</h2><p>Agrega tu primer platillo desde el formulario superior.</p>
   </section>
-  <p class="hint-text">Los márgenes son estimaciones basadas únicamente en el costo de ingredientes: no incluyen impuestos, personal ni otros gastos.</p>
-<footer class="main-footer">Restaurante · Demostración local · Java, Spring Boot y MySQL · Sin autenticación</footer>
+  <p class="hint-text">Los precios de pedidos anteriores permanecen intactos. El margen considera solo ingredientes y no equivale a utilidad neta.</p>
+  <footer class="main-footer">Restaurante · Demo local · Java, Spring Boot y MySQL · Sin autenticación</footer>
 </div></main></div></body></html>

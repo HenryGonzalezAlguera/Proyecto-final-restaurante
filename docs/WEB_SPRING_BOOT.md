@@ -57,3 +57,16 @@ El panel permite registrar un platillo y su cantidad por pedido, cambiar estados
 Las pantallas usan el fragmento Thymeleaf `templates/fragmentos/navegacion.html` para compartir navegación. Los tests MockMvc comprueban HTML, filtros y fallos SQL; hay tests unitarios del cálculo de indicadores.
 
 **Limitaciones:** historial sin auditoría cronológica ni paginación; catálogo sin CRUD web; sin autenticación, CSRF, pagos ni despliegue público. No presentar el valor de pedidos entregados como facturación.
+
+## Fase 7 — Administración local del catálogo
+
+- Crear platillos: nueva ruta `POST /catalogo/nuevo`, con identificador generado en MySQL.
+- Editar nombre, costo y precio: `POST /catalogo/{id}/editar`.
+- Desactivar o activar: `POST /catalogo/{id}/disponibilidad`, con `accion=desactivar` o `accion=activar`.
+- Para los pedidos, la consulta `listarPlatillos()` continúa devolviendo **solo activos**. `listarCatalogoAdministracion()` incluye también los inactivos.
+- La actualización del catálogo nunca modifica `pedido_detalles`; permanecen los nombres y precios históricos y se preservan las claves foráneas.
+- Valores monetarios con `BigDecimal`, límite DECIMAL(12,2), ID positivo y nombre de máximo 150 caracteres.
+- Antes de crear platillos, importar `database/03_migracion_catalogo.sql` desde phpMyAdmin; no se necesitan permisos ALTER para `restaurante_app`.
+- Pruebas: MockMvc sobre formularios y MySQL real sobre altas, edición, desactivación, reactivación y conservación del historial.
+
+**Restricción crítica:** los formularios aún no tienen autenticación, roles ni defensa CSRF. Mantener en `127.0.0.1` y no publicar el panel en Internet. La seguridad debe abordarse en una fase posterior antes de producción.

@@ -58,6 +58,7 @@ class RepositorioRestauranteJdbcTest {
                 }
                 stmt.execute(sql);
             }
+            stmt.execute("ALTER TABLE platillos MODIFY COLUMN id INT NOT NULL AUTO_INCREMENT");
         }
     }
 
@@ -183,4 +184,57 @@ class RepositorioRestauranteJdbcTest {
             }
         }
     }
+    @Test
+    void creaPlatilloConIdAutomaticoYPermiteEditarSinRepreciarPedidos() throws Exception {
+        Pedido historico = repositorio.registrarPedido(10, List.of(detalle(1, 2)));
+
+        Platillo creado = repositorio.crearPlatillo("Ensalada", new BigDecimal("1200"),
+                new BigDecimal("2500"));
+        assertTrue(creado.getId() > 2);
+        assertTrue(repositorio.listarPlatillos().stream()
+                .anyMatch(p -> p.getId() == creado.getId()));
+
+        var actualizado = repositorio.actualizarPlatillo(1, "Casado especial",
+                new BigDecimal("2200"), new BigDecimal("4000"));
+        assertTrue(actualizado.activo());
+        assertEquals("Casado especial", actualizado.platillo().getNombre());
+
+        Pedido cargado = repositorio.buscarPedido(historico.getId());
+        assertEquals(new BigDecimal("7000.00"), cargado.getTotal());
+        assertEquals("Casado", cargado.getDetalles().get(0).getNombrePlatillo());
+        assertEquals(new BigDecimal("3500.00"), cargado.getDetalles().get(0).getPrecioUnitario());
+    }
+
+    @Test
+    void desactivacionLogicaConservaPedidosEImpideNuevasOrdenes() throws Exception {
+        Pedido historico = repositorio.registrarPedido(10, List.of(detalle(1, 1)));
+        repositorio.cambiarDisponibilidadPlatillo(1, false);
+
+        assertFalse(repositorio.listarPlatillos().stream().anyMatch(p -> p.getId() == 1));
+        var desactivado = repositorio.listarCatalogoAdministracion().stream()
+                .filter(r -> r.platillo().getId() == 1).findFirst().orElseThrow();
+        assertFalse(desactivado.activo());
+        assertEquals(new BigDecimal("3500.00"),
+                repositorio.buscarPedido(historico.getId()).getTotal());
+        assertThrows(IllegalArgumentException.class,
+                () -> repositorio.registrarPedido(20, List.of(detalle(1, 1))));
+
+        repositorio.cambiarDisponibilidadPlatillo(1, true);
+        assertTrue(repositorio.listarPlatillos().stream().anyMatch(p -> p.getId() == 1));
+        assertEquals(EstadoPedido.PENDIENTE,
+                repositorio.registrarPedido(20, List.of(detalle(1, 1))).getEstado());
+    }
+
+    @Test
+    void rechazaIdsInexistentesSinModificarDatos() throws Exception {
+        assertThrows(NoSuchElementException.class, () -> repositorio.actualizarPlatillo(
+                999999, "Inexistente", BigDecimal.ONE, BigDecimal.TEN));
+        assertThrows(NoSuchElementException.class,
+                () -> repositorio.cambiarDisponibilidadPlatillo(999999, false));
+        assertThrows(IllegalArgumentException.class,
+                () -> repositorio.crearPlatillo(" ", BigDecimal.ONE, BigDecimal.TEN));
+        assertEquals(2, repositorio.listarPlatillos().size());
+    }
+
+
 }
