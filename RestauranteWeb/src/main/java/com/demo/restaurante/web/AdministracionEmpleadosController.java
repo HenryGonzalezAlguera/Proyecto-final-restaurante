@@ -23,9 +23,13 @@ public class AdministracionEmpleadosController {
     @GetMapping("/usuarios")
     public String listado(Model modelo) {
         try {
-            modelo.addAttribute("empleados", servicio.listarEmpleados());
+            var registrados = servicio.listarEmpleados();
+            modelo.addAttribute("empleados", registrados);
+            modelo.addAttribute("empleadosActivos", registrados.stream()
+                    .filter(AdministracionEmpleadosService.EmpleadoResumen::activo).count());
         } catch (SQLException | IllegalStateException ex) {
             modelo.addAttribute("empleados", List.of());
+            modelo.addAttribute("empleadosActivos", 0L);
             modelo.addAttribute("errorConexion", ERROR_DB);
         }
         return "usuarios";
