@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-/** UI de demostración local (sin autenticación: no exponer a Internet). */
+/** UI local con sesión autenticada y protección CSRF desde Spring Security. */
 @Controller
 public class PedidosWebController {
     private final ServicioRestauranteWeb servicio;
