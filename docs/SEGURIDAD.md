@@ -90,3 +90,25 @@ Desde la pantalla **Usuarios** (`/usuarios`), un administrador puede consultar l
 - Todavía no hay revocación inmediata de sesiones existentes, restablecimiento de claves ni auditoría. Estos aspectos deben cubrirse antes de desplegar públicamente.
 
 No se necesita una migración adicional: se reutiliza la tabla `usuarios` de la fase 8.
+
+## Fase 9B — Activación, desactivación y restablecimiento de contraseñas
+
+El administrador gestiona **solo empleados** desde `/usuarios`. No se pueden desactivar, reactivar ni cambiar contraseñas de cuentas `ADMIN` mediante esta pantalla.
+
+- `POST /usuarios/empleados/{id}/estado` acepta exclusivamente `accion=activar` o `accion=desactivar`.
+- `POST /usuarios/empleados/{id}/clave` recibe `password` y `confirmacion`; la contraseña debe tener al menos 12 caracteres, máximo 72 bytes UTF-8 y ambos valores deben coincidir.
+- Los controles requieren sesión de `ADMIN` y token CSRF. No se exponen hashes, contraseñas ni mensajes internos de SQL al navegador.
+- Desactivar impide **nuevos** accesos. El filtro de vigencia comprueba cada petición de una sesión real contra la tabla `usuarios`; si detecta cuenta inactiva, hash cambiado o rol cambiado, invalida la sesión y redirige a `/login?sesion=revocada`. Las rutas `/api/` devuelven HTTP 401 en ese caso.
+- Si MySQL falla durante la comprobación de vigencia, se responde HTTP 503 (fallo cerrado), sin ejecutar la acción solicitada.
+- Restablecer una clave **no reactiva** automáticamente una cuenta desactivada.
+- Se reutiliza la tabla `usuarios`: no es necesaria ninguna nueva migración SQL.
+
+### Prueba local sugerida
+
+1. Inicia sesión como `admin` y entra en `/usuarios`.
+2. Crea un empleado de prueba y abre una sesión como ese empleado en otro navegador o ventana privada.
+3. Desde la sesión de administrador, desactiva al empleado y prueba actualizar `/pedidos` en su sesión: deberá solicitar un nuevo login.
+4. Reactívalo, inicia sesión de nuevo con su contraseña anterior, restablece la clave desde admin y actualiza la sesión del empleado: deberá cerrarse.
+5. Confirma que la contraseña antigua falla y la nueva permite el ingreso. No compartas las contraseñas con terceros ni las captures en pantallas.
+
+**Límites:** la revocación se aplica en la siguiente petición autenticada, no detiene una operación que ya esté ejecutándose. Es una comprobación JDBC por petición, adecuada para la demo local pero no optimizada para grandes cargas. Para Internet todavía faltan HTTPS, limitación de intentos de login, auditoría, mecanismos de recuperación verificada y pruebas de seguridad.
