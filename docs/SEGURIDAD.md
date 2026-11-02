@@ -127,3 +127,18 @@ La ruta `/auditoria` (solo `ADMIN`) muestra eventos paginados de pedidos, catál
 3. Verifica actor y referencia en los nuevos eventos. La cuenta `EMPLEADO` no puede consultar `/auditoria`.
 
 Para garantías más fuertes hará falta insertar el evento dentro de la **misma transacción JDBC** que el cambio de negocio, más controles de retención e inmutabilidad.
+
+## Fase 9D — Protección de inicio de sesión y pruebas integrales
+
+El inicio de sesión ahora utiliza un control temporal en memoria para limitar intentos de fuerza bruta. Se cuentan los fallos por **dirección IP remota real de la conexión**, sin confiar en encabezados `X-Forwarded-For`. Después de **5 fallos** dentro de una ventana de **15 minutos**, se rechazan nuevos intentos de esa dirección durante **15 minutos**, con mensaje genérico. Una autenticación correcta borra el contador. Nunca se registra la contraseña, y la respuesta no confirma si el usuario existe.
+
+**Importante para pruebas locales:** todas las pestañas y navegadores en el mismo equipo comparten normalmente `127.0.0.1`; demasiadas claves incorrectas en cualquier cuenta pueden bloquear también temporalmente al administrador. El bloqueo desaparece por sí solo. Reiniciar la aplicación borra el registro, porque está almacenado en memoria.
+
+Se añadieron pruebas JUnit y MockMvc para el límite por IP, expiración sin esperas, limpieza después de un login válido, protección CSRF del formulario, matriz de permisos entre ADMIN/EMPLEADO, acceso denegado en auditoría/catálogo y cabeceras HTTP de seguridad.
+
+**Límites:** el mecanismo es de **una sola instancia** y no persiste reinicios; no tiene un registro distribuido ni respuesta a ataques masivos por muchas direcciones. No está preparado para desplegarse detrás de un proxy sin configurar una frontera de confianza. Spring Security aplica los encabezados `X-Frame-Options`, `X-Content-Type-Options` y `Cache-Control`; el servidor sigue vinculado a `127.0.0.1`, **sin HTTPS**. En un despliegue externo se requieren HTTPS, cookie `Secure`, HSTS, protección distribuida contra intentos, observabilidad, auditoría transaccional y revisión de dependencias.
+
+### Prueba manual
+1. Inicia el servidor e ingresa con tu cuenta administrador para comprobar que el flujo habitual sigue funcionando.
+2. En otra ventana privada, entra como empleado y confirma que puede ver Pedidos/Historial, pero no Catálogo/Usuarios/Auditoría.
+3. Si deseas comprobar el bloqueo, introduce intencionalmente cinco claves incorrectas para una cuenta de prueba: el sexto intento debe mostrar el aviso de espera de 15 minutos. Como se comparte la dirección `127.0.0.1`, realiza esta prueba **al final** de la sesión de validación; no se requieren contraseñas reales compartidas ni capturas de credenciales.
