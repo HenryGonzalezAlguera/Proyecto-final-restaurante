@@ -112,3 +112,18 @@ El administrador gestiona **solo empleados** desde `/usuarios`. No se pueden des
 5. Confirma que la contraseña antigua falla y la nueva permite el ingreso. No compartas las contraseñas con terceros ni las captures en pantallas.
 
 **Límites:** la revocación se aplica en la siguiente petición autenticada, no detiene una operación que ya esté ejecutándose. Es una comprobación JDBC por petición, adecuada para la demo local pero no optimizada para grandes cargas. Para Internet todavía faltan HTTPS, limitación de intentos de login, auditoría, mecanismos de recuperación verificada y pruebas de seguridad.
+
+## Fase 9C — Auditoría de operaciones
+
+Importa `database/05_auditoria_operaciones.sql` en `restaurante_portafolio` mediante phpMyAdmin después de hacer copia de seguridad y detener Spring Boot. El script crea únicamente `auditoria_operaciones`; el usuario técnico `restaurante_app` requiere `SELECT` e `INSERT` sobre esa tabla. No son necesarios permisos `DELETE` ni `UPDATE` en la bitácora.
+
+La ruta `/auditoria` (solo `ADMIN`) muestra eventos paginados de pedidos, catálogo y cuentas. Guarda fecha/hora de MySQL, actor autenticado, acción de una lista cerrada, entidad, referencia y detalle limitado a estados. Nunca almacena contraseñas, hashes, tokens, precios, datos de clientes ni texto arbitrario suministrado por el usuario. No reconstruye operaciones previas a su instalación.
+
+**Límite de integridad:** el evento se escribe **después** de completar la operación y en otra conexión JDBC. Una interrupción o error de conexión puede dejar operaciones exitosas sin un evento: esta bitácora es trazabilidad operativa, NO auditoría atómica ni forense. Las vistas muestran una advertencia si el registro falla; el servidor también registra una advertencia genérica sin información sensible. El POST de creación por API expone `X-Audit-Status: recorded|missing`; otros cambios API se notifican en logs.
+
+### Prueba manual
+1. Importa migración 05 con la aplicación detenida.
+2. Abre `/auditoria` como admin y crea un pedido, avanza su estado, edita un platillo y cambia el estado de un empleado.
+3. Verifica actor y referencia en los nuevos eventos. La cuenta `EMPLEADO` no puede consultar `/auditoria`.
+
+Para garantías más fuertes hará falta insertar el evento dentro de la **misma transacción JDBC** que el cambio de negocio, más controles de retención e inmutabilidad.
