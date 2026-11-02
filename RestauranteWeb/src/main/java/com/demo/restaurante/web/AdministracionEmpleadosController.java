@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -49,4 +50,41 @@ public class AdministracionEmpleadosController {
         }
         return "redirect:/usuarios";
     }
+    @PostMapping("/usuarios/empleados/{id}/estado")
+    public String estado(@PathVariable int id,
+                         @RequestParam(required = false) String accion,
+                         RedirectAttributes mensajes) {
+        if (!"activar".equals(accion) && !"desactivar".equals(accion)) {
+            mensajes.addFlashAttribute("error", "Acción de estado inválida.");
+            return "redirect:/usuarios";
+        }
+        try {
+            servicio.cambiarEstadoEmpleado(id, "activar".equals(accion));
+            mensajes.addFlashAttribute("mensaje",
+                    "activar".equals(accion) ? "Empleado activado." : "Empleado desactivado.");
+        } catch (IllegalArgumentException ex) {
+            mensajes.addFlashAttribute("error", ex.getMessage());
+        } catch (SQLException | IllegalStateException ex) {
+            mensajes.addFlashAttribute("error", ERROR_DB);
+        }
+        return "redirect:/usuarios";
+    }
+
+    @PostMapping("/usuarios/empleados/{id}/clave")
+    public String clave(@PathVariable int id,
+                        @RequestParam(required = false) String password,
+                        @RequestParam(required = false) String confirmacion,
+                        RedirectAttributes mensajes) {
+        try {
+            servicio.restablecerClaveEmpleado(id, password, confirmacion);
+            mensajes.addFlashAttribute("mensaje",
+                    "Contraseña actualizada. Las sesiones anteriores del empleado han sido revocadas.");
+        } catch (IllegalArgumentException ex) {
+            mensajes.addFlashAttribute("error", ex.getMessage());
+        } catch (SQLException | IllegalStateException ex) {
+            mensajes.addFlashAttribute("error", ERROR_DB);
+        }
+        return "redirect:/usuarios";
+    }
+
 }
