@@ -6,7 +6,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import org.springframework.security.authentication.AuthenticationServiceException;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -31,11 +30,9 @@ public class UsuariosRestauranteService implements UserDetailsService {
                 if (!rs.next()) {
                     throw new UsernameNotFoundException("Credenciales inválidas.");
                 }
-                return User.withUsername(rs.getString("usuario"))
-                        .password(rs.getString("password_hash"))
-                        .roles(rs.getString("rol"))
-                        .disabled(!rs.getBoolean("activo"))
-                        .build();
+                return new UsuarioRestaurantePrincipal(
+                        rs.getString("usuario"), rs.getString("password_hash"),
+                        rs.getString("rol"), rs.getBoolean("activo"));
             }
         } catch (SQLException ex) {
             throw new AuthenticationServiceException(
