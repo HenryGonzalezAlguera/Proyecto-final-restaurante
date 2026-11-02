@@ -16,9 +16,12 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @Controller
 public class PedidosWebController {
     private final ServicioRestauranteWeb servicio;
+    private final AuditoriaRestauranteService auditoria;
 
-    public PedidosWebController(ServicioRestauranteWeb servicio) {
+    public PedidosWebController(ServicioRestauranteWeb servicio,
+                                AuditoriaRestauranteService auditoria) {
         this.servicio = servicio;
+        this.auditoria = auditoria;
     }
 
     @GetMapping("/")
@@ -56,6 +59,8 @@ public class PedidosWebController {
         try {
             var pedido = servicio.registrarPedido(clienteId, platilloId, cantidad);
             mensajes.addFlashAttribute("mensaje", "Pedido #" + pedido.getId() + " registrado.");
+            advertirSiFallaAuditoria(mensajes, AuditoriaRestauranteService.Accion.PEDIDO_CREADO,
+                    String.valueOf(pedido.getId()), "PENDIENTE");
         } catch (SQLException | RuntimeException ex) {
             mensajes.addFlashAttribute("error", mensajePublico(ex));
         }
@@ -71,6 +76,8 @@ public class PedidosWebController {
             }
             var pedido = servicio.cambiarEstado(id, estado);
             mensajes.addFlashAttribute("mensaje", "Pedido #" + id + " → " + pedido.getEstado());
+            advertirSiFallaAuditoria(mensajes, AuditoriaRestauranteService.Accion.PEDIDO_ESTADO,
+                    String.valueOf(id), pedido.getEstado().name());
         } catch (SQLException | RuntimeException ex) {
             mensajes.addFlashAttribute("error", mensajePublico(ex));
         }
@@ -84,10 +91,22 @@ public class PedidosWebController {
             mensajes.addFlashAttribute("mensaje", pedido
                     .map(p -> "Pedido #" + p.getId() + " enviado a preparación.")
                     .orElse("No hay pedidos pendientes."));
+            pedido.ifPresent(p -> advertirSiFallaAuditoria(mensajes,
+                    AuditoriaRestauranteService.Accion.PEDIDO_PREPARACION,
+                    String.valueOf(p.getId()), "EN_PREPARACION"));
         } catch (SQLException | RuntimeException ex) {
             mensajes.addFlashAttribute("error", mensajePublico(ex));
         }
         return "redirect:/pedidos";
+    }
+
+    private void advertirSiFallaAuditoria(RedirectAttributes mensajes,
+                                          AuditoriaRestauranteService.Accion accion,
+                                          String referencia, String detalle) {
+        if (!auditoria.registrar(accion, referencia, detalle)) {
+            mensajes.addFlashAttribute("advertenciaAuditoria",
+                    "El cambio se realizó, pero no se pudo guardar la auditoría.");
+        }
     }
 
     private static String mensajePublico(Exception ex) {
