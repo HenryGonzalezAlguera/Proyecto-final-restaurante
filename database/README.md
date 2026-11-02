@@ -71,3 +71,6 @@ Después de esta migración, `restaurante_app` mantiene únicamente `SELECT, INS
 ## Fase 8 — cuentas de aplicación
 
 Desde la fase 8, importar también `database/04_usuarios_seguridad.sql` con el servidor detenido y crear usuarios de acceso con BCrypt mediante el bootstrap documentado en [docs/SEGURIDAD.md](../docs/SEGURIDAD.md). El usuario de MySQL `restaurante_app` sigue siendo una cuenta técnica, **no es un usuario de inicio de sesión web**.
+
+## Fase 9C — Auditoría
+Con el servidor detenido y luego de respaldar `restaurante_portafolio`, importa `database/05_auditoria_operaciones.sql` desde phpMyAdmin. Agrega solamente la tabla `auditoria_operaciones`; no modifica las tablas anteriores. El usuario `restaurante_app` necesita `SELECT` e `INSERT` sobre ella. Véase [docs/SEGURIDAD.md](../docs/SEGURIDAD.md) para limitaciones y pruebas.
