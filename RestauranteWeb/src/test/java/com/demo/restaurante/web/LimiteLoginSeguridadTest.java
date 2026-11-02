@@ -26,9 +26,10 @@ class LimiteLoginSeguridadTest {
     void quintoFalloBloqueaNuevoIntentoSoloParaLaIpAfectada() throws Exception {
         String cuenta = "cuenta_qa";
         String clave = "ClaveSeguraParaPrueba2026!";
+        String hash = encoder.encode(clave);
         when(usuarios.loadUserByUsername(cuenta))
-                .thenReturn(new UsuarioRestaurantePrincipal(
-                        cuenta, encoder.encode(clave), "EMPLEADO", true));
+                .thenAnswer(inv -> new UsuarioRestaurantePrincipal(
+                        cuenta, hash, "EMPLEADO", true));
         for (int i = 0; i < 5; i++) {
             mvc.perform(post("/login").with(csrf())
                             .with(r -> { r.setRemoteAddr("192.0.2.77"); return r; })
@@ -58,9 +59,10 @@ class LimiteLoginSeguridadTest {
     void loginCorrectoReiniciaElContador() throws Exception {
         String usuario = "cuenta_exito_qa";
         String clave = "ContrasenaCorrecta2026!";
+        String hash = encoder.encode(clave);
         when(usuarios.loadUserByUsername(usuario))
-                .thenReturn(new UsuarioRestaurantePrincipal(
-                        usuario, encoder.encode(clave), "ADMIN", true));
+                .thenAnswer(inv -> new UsuarioRestaurantePrincipal(
+                        usuario, hash, "ADMIN", true));
         for (int i = 0; i < 4; i++) {
             mvc.perform(post("/login").with(csrf())
                             .with(r -> { r.setRemoteAddr("198.51.100.91"); return r; })
