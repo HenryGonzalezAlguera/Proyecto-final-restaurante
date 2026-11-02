@@ -26,6 +26,7 @@ public class SeguridadRestauranteConfiguracion {
                 .requestMatchers("/login", "/css/**", "/favicon.ico", "/error").permitAll()
                 .requestMatchers("/acceso-denegado").authenticated()
                 .requestMatchers("/catalogo", "/catalogo/**").hasRole("ADMIN")
+                .requestMatchers("/usuarios", "/usuarios/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.GET, "/api/platillos").hasRole("ADMIN")
                 .anyRequest().authenticated()
         );
