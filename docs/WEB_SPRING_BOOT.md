@@ -56,7 +56,7 @@ El panel permite registrar un platillo y su cantidad por pedido, cambiar estados
 
 Las pantallas usan el fragmento Thymeleaf `templates/fragmentos/navegacion.html` para compartir navegación. Los tests MockMvc comprueban HTML, filtros y fallos SQL; hay tests unitarios del cálculo de indicadores.
 
-**Limitaciones:** historial sin auditoría cronológica ni paginación; catálogo sin CRUD web; sin autenticación, CSRF, pagos ni despliegue público. No presentar el valor de pedidos entregados como facturación.
+**Limitaciones:** historial sin auditoría cronológica ni paginación; catálogo sin CRUD web; sin gestión avanzada de cuentas ni auditoría, pagos ni despliegue público. No presentar el valor de pedidos entregados como facturación.
 
 ## Fase 7 — Administración local del catálogo
 
@@ -69,7 +69,7 @@ Las pantallas usan el fragmento Thymeleaf `templates/fragmentos/navegacion.html`
 - Antes de crear platillos, importar `database/03_migracion_catalogo.sql` desde phpMyAdmin; no se necesitan permisos ALTER para `restaurante_app`.
 - Pruebas: MockMvc sobre formularios y MySQL real sobre altas, edición, desactivación, reactivación y conservación del historial.
 
-**Restricción crítica:** los formularios aún no tienen autenticación, roles ni defensa CSRF. Mantener en `127.0.0.1` y no publicar el panel en Internet. La seguridad debe abordarse en una fase posterior antes de producción.
+**Restricción crítica:** los formularios ahora tienen autenticación, roles y CSRF. Mantener en `127.0.0.1` y no publicar el panel en Internet. La seguridad debe abordarse en una fase posterior antes de producción.
 
 La migración 03 retira y recrea temporalmente la clave foránea `fk_detalles_platillo`. Antes de aplicarla en una base que ya contiene pedidos, realizar un respaldo y detener el servidor local.
 
