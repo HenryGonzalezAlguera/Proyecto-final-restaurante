@@ -16,9 +16,12 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @Controller
 public class CatalogoAdminController {
     private final ServicioRestauranteWeb servicio;
+    private final AuditoriaRestauranteService auditoria;
 
-    public CatalogoAdminController(ServicioRestauranteWeb servicio) {
+    public CatalogoAdminController(ServicioRestauranteWeb servicio,
+                                   AuditoriaRestauranteService auditoria) {
         this.servicio = servicio;
+        this.auditoria = auditoria;
     }
 
     @PostMapping("/catalogo/nuevo")
@@ -30,6 +33,8 @@ public class CatalogoAdminController {
             var creado = servicio.crearPlatillo(nombre, monto(costo), monto(precio));
             mensajes.addFlashAttribute("mensaje",
                     "Platillo #" + creado.getId() + " agregado al catálogo.");
+            registrarAuditoria(mensajes, AuditoriaRestauranteService.Accion.PLATILLO_CREADO,
+                    creado.getId(), "ACTIVO");
         } catch (SQLException error) {
             mensajes.addFlashAttribute("error", errorSql());
         } catch (IllegalArgumentException | IllegalStateException error) {
@@ -47,6 +52,8 @@ public class CatalogoAdminController {
         try {
             servicio.actualizarPlatillo(id, nombre, monto(costo), monto(precio));
             mensajes.addFlashAttribute("mensaje", "Platillo #" + id + " actualizado.");
+            registrarAuditoria(mensajes, AuditoriaRestauranteService.Accion.PLATILLO_EDITADO,
+                    id, "");
         } catch (SQLException error) {
             mensajes.addFlashAttribute("error", errorSql());
         } catch (NoSuchElementException error) {
@@ -70,6 +77,9 @@ public class CatalogoAdminController {
             servicio.cambiarDisponibilidadPlatillo(id, activo);
             mensajes.addFlashAttribute("mensaje",
                     "Platillo #" + id + (activo ? " activado." : " desactivado."));
+            registrarAuditoria(mensajes,
+                    AuditoriaRestauranteService.Accion.PLATILLO_DISPONIBILIDAD,
+                    id, activo ? "ACTIVO" : "INACTIVO");
         } catch (SQLException error) {
             mensajes.addFlashAttribute("error", errorSql());
         } catch (NoSuchElementException error) {
@@ -78,6 +88,15 @@ public class CatalogoAdminController {
             mensajes.addFlashAttribute("error", error.getMessage());
         }
         return "redirect:/catalogo";
+    }
+
+    private void registrarAuditoria(RedirectAttributes mensajes,
+                                   AuditoriaRestauranteService.Accion accion,
+                                   int id, String detalle) {
+        if (!auditoria.registrar(accion, String.valueOf(id), detalle)) {
+            mensajes.addFlashAttribute("advertenciaAuditoria",
+                    "El cambio se realizó, pero no se pudo guardar la auditoría.");
+        }
     }
 
     private static BigDecimal monto(String valor) {

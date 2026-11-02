@@ -16,6 +16,8 @@
            th:href="@{/catalogo}">≡ <span>Catálogo</span></a>
         <a class="nav-item" th:if="${esAdmin}" th:classappend="${pagina == 'usuarios'} ? ' active' : ''"
            th:href="@{/usuarios}">♙ <span>Usuarios</span></a>
+        <a class="nav-item" th:if="${esAdmin}" th:classappend="${pagina == 'auditoria'} ? ' active' : ''"
+           th:href="@{/auditoria}">◫ <span>Auditoría</span></a>
         <a class="nav-item" th:classappend="${pagina == 'historial'} ? ' active' : ''"
            th:href="@{/historial}">◷ <span>Historial</span></a>
     </nav>

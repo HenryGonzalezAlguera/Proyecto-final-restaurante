@@ -16,15 +16,18 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * API REST local para demostración y pruebas; sin autenticación ni despliegue público.
+ * API REST local con sesión y CSRF; no está preparada para despliegue público.
  */
 @RestController
 @RequestMapping("/api")
 public class PedidosApiController {
     private final ServicioRestauranteWeb servicio;
+    private final AuditoriaRestauranteService auditoria;
 
-    public PedidosApiController(ServicioRestauranteWeb servicio) {
+    public PedidosApiController(ServicioRestauranteWeb servicio,
+                                AuditoriaRestauranteService auditoria) {
         this.servicio = servicio;
+        this.auditoria = auditoria;
     }
 
     public record CrearPedido(Integer clienteId, Integer platilloId, Integer cantidad) { }
@@ -52,7 +55,10 @@ public class PedidosApiController {
         }
         var pedido = servicio.registrarPedido(
                 solicitud.clienteId(), solicitud.platilloId(), solicitud.cantidad());
-        return ResponseEntity.status(HttpStatus.CREATED).body(pedido);
+        boolean guardado = auditoria.registrar(AuditoriaRestauranteService.Accion.PEDIDO_CREADO,
+                String.valueOf(pedido.getId()), "PENDIENTE");
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .header("X-Audit-Status", guardado ? "recorded" : "missing").body(pedido);
     }
 
     @PostMapping("/pedidos/{id}/estado")
@@ -61,12 +67,18 @@ public class PedidosApiController {
         if (solicitud == null || solicitud.estado() == null) {
             throw new IllegalArgumentException("El estado es obligatorio.");
         }
-        return servicio.cambiarEstado(id, solicitud.estado());
+        Pedido pedido = servicio.cambiarEstado(id, solicitud.estado());
+        auditoria.registrar(AuditoriaRestauranteService.Accion.PEDIDO_ESTADO,
+                String.valueOf(id), pedido.getEstado().name());
+        return pedido;
     }
 
     @PostMapping("/pedidos/siguiente")
     public ResponseEntity<Pedido> siguiente() throws SQLException {
         Optional<Pedido> siguiente = servicio.iniciarSiguiente();
+        siguiente.ifPresent(p -> auditoria.registrar(
+                AuditoriaRestauranteService.Accion.PEDIDO_PREPARACION,
+                String.valueOf(p.getId()), "EN_PREPARACION"));
         return siguiente.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.noContent().build());
     }

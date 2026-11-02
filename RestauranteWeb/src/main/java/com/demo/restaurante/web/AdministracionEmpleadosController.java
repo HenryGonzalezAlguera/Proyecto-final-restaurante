@@ -16,9 +16,12 @@ public class AdministracionEmpleadosController {
     private static final String ERROR_DB =
             "No se pudo acceder a los usuarios. Revisa la conexión MySQL y la migración 04.";
     private final AdministracionEmpleadosService servicio;
+    private final AuditoriaRestauranteService auditoria;
 
-    public AdministracionEmpleadosController(AdministracionEmpleadosService servicio) {
+    public AdministracionEmpleadosController(AdministracionEmpleadosService servicio,
+                                             AuditoriaRestauranteService auditoria) {
         this.servicio = servicio;
+        this.auditoria = auditoria;
     }
 
     @GetMapping("/usuarios")
@@ -43,6 +46,8 @@ public class AdministracionEmpleadosController {
         try {
             servicio.crearEmpleado(usuario, password);
             mensajes.addFlashAttribute("mensaje", "Cuenta de empleado creada correctamente.");
+            registrarAuditoria(mensajes, AuditoriaRestauranteService.Accion.EMPLEADO_CREADO,
+                    usuario.trim(), "ACTIVO");
         } catch (IllegalArgumentException ex) {
             mensajes.addFlashAttribute("error", ex.getMessage());
         } catch (SQLException | IllegalStateException ex) {
@@ -62,6 +67,8 @@ public class AdministracionEmpleadosController {
             servicio.cambiarEstadoEmpleado(id, "activar".equals(accion));
             mensajes.addFlashAttribute("mensaje",
                     "activar".equals(accion) ? "Empleado activado." : "Empleado desactivado.");
+            registrarAuditoria(mensajes, AuditoriaRestauranteService.Accion.EMPLEADO_ESTADO,
+                    String.valueOf(id), "activar".equals(accion) ? "ACTIVO" : "INACTIVO");
         } catch (IllegalArgumentException ex) {
             mensajes.addFlashAttribute("error", ex.getMessage());
         } catch (SQLException | IllegalStateException ex) {
@@ -79,12 +86,23 @@ public class AdministracionEmpleadosController {
             servicio.restablecerClaveEmpleado(id, password, confirmacion);
             mensajes.addFlashAttribute("mensaje",
                     "Contraseña actualizada. Las sesiones anteriores del empleado han sido revocadas.");
+            registrarAuditoria(mensajes, AuditoriaRestauranteService.Accion.EMPLEADO_CLAVE,
+                    String.valueOf(id), "");
         } catch (IllegalArgumentException ex) {
             mensajes.addFlashAttribute("error", ex.getMessage());
         } catch (SQLException | IllegalStateException ex) {
             mensajes.addFlashAttribute("error", ERROR_DB);
         }
         return "redirect:/usuarios";
+    }
+
+    private void registrarAuditoria(RedirectAttributes mensajes,
+                                   AuditoriaRestauranteService.Accion accion,
+                                   String referencia, String detalle) {
+        if (!auditoria.registrar(accion, referencia, detalle)) {
+            mensajes.addFlashAttribute("advertenciaAuditoria",
+                    "El cambio se realizó, pero no se pudo guardar la auditoría.");
+        }
     }
 
 }

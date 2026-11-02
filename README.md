@@ -1,12 +1,12 @@
 # Restaurante — Java, Spring Boot y MySQL
 
-Aplicación de demostración para portafolio que evolucionó desde una práctica de estructuras de datos hasta **cinco pantallas web operativas**, **API REST local** y **seguridad por roles**, reutilizando el modelo de dominio original y la persistencia JDBC.
+Aplicación de demostración para portafolio que evolucionó desde una práctica de estructuras de datos hasta **seis pantallas web operativas**, **API REST local** y **seguridad por roles**, reutilizando el modelo de dominio original y la persistencia JDBC.
 
 > **Estado: prototipo local con autenticación.** Sin pagos, facturación ni datos reales. Por seguridad el servidor web se enlaza a `127.0.0.1` de forma predeterminada. **No exponer a Internet** sin incorporar seguridad, permisos y pruebas adicionales.
 
 ## Qué permite hacer
 
-- Navegar por las páginas **Dashboard**, **Pedidos**, **Catálogo**, **Historial** y **Usuarios** desde un menú uniforme.
+- Navegar por las páginas **Dashboard**, **Pedidos**, **Catálogo**, **Historial**, **Usuarios** y **Auditoría** desde un menú uniforme.
 - Administrar el catálogo en tarjetas: **crear, editar, desactivar y reactivar platillos** sin borrar el historial.
 - Consultar el catálogo activo en tarjetas con precios, costos y márgenes estimados.
 - Registrar un pedido desde el navegador: cliente, platillo y cantidad.
@@ -19,6 +19,7 @@ Aplicación de demostración para portafolio que evolucionó desde una práctica
 - Conservar los precios históricos y la integridad de transacciones en MySQL.
 
 - El administrador puede crear, consultar, activar y desactivar cuentas de empleados y restablecer sus contraseñas desde **Usuarios**, sin mostrar las claves ni los hashes. Las sesiones desactualizadas se revocan en la siguiente petición.
+- Consultar **Auditoría**: operaciones registradas posteriormente a cambios de pedidos, catálogo y cuentas; sin guardar contraseñas.
 
 Las reglas de validación y transición se implementan una sola vez en el módulo Java y se **reutilizan** desde Spring Boot.
 
@@ -31,7 +32,7 @@ Las reglas de validación y transición se implementan una sola vez en el módul
 ├── RestauranteWeb/               # Spring Boot MVC, Thymeleaf y API JSON
 │   ├── pom.xml
 │   ├── src/main/java/com/demo/restaurante/web/
-│   ├── src/main/resources/templates/{pedidos,catalogo,historial,dashboard,usuarios}.html
+│   ├── src/main/resources/templates/{pedidos,catalogo,historial,dashboard,usuarios,auditoria}.html
 │   ├── src/main/resources/static/css/restaurante.css
 │   └── src/test/java/com/demo/restaurante/web/
 ├── database/                     # Esquema SQL y guía XAMPP
@@ -78,7 +79,7 @@ java -jar RestauranteWeb/target/restaurante-web-1.0-SNAPSHOT.jar
 
 **Importante para la fase 7:** ejecuta una sola vez `database/03_migracion_catalogo.sql` con tu cuenta administradora de phpMyAdmin. Permite IDs automáticos al registrar platillos y conserva registros anteriores. La cuenta `restaurante_app` no requiere permisos `ALTER`.
 
-**Rutas visuales:** `/dashboard` (indicadores), `/pedidos` (operaciones), `/catalogo` (menú), `/historial` (búsqueda y detalles), `/usuarios` (alta y listado de empleados, ADMIN). Los enlaces `/api/...` continúan disponibles como JSON en la sección Desarrollo.
+**Rutas visuales:** `/dashboard` (indicadores), `/pedidos` (operaciones), `/catalogo` (menú), `/historial` (búsqueda y detalles), `/usuarios` (gestión de empleados, ADMIN), `/auditoria` (bitácora de operaciones, ADMIN). Los enlaces `/api/...` continúan disponibles como JSON en la sección Desarrollo.
 
 La interfaz informa si faltan credenciales o esquema. La aplicación **no crea automáticamente la base ni las tablas**. La inicialización de catálogo debe hacerse en MySQL o con la demostración JDBC explicada en `database/README.md`. Para el módulo original de consola:
 
@@ -113,7 +114,7 @@ No todos los cambios de estado están permitidos; consulta [docs/FLUJO_PEDIDOS.m
 
 ## Limitaciones y seguridad
 
-- Prototipo local con **login, roles, CSRF y revocación de sesiones en siguiente petición**, aún sin HTTPS, mitigación de fuerza bruta ni auditoría: no desplegarlo en un servidor público.
+- Prototipo local con **login, roles, CSRF y revocación de sesiones en siguiente petición**, aún sin HTTPS, mitigación de fuerza bruta ni auditoría transaccional: no desplegarlo en un servidor público.
 - El formulario web crea **un tipo de platillo por pedido**; la lógica Java y la API de repositorio ya admiten múltiples detalles y se ampliará la interfaz posteriormente.
 - La edición del catálogo y la gestión de usuarios requieren **rol ADMIN**; los roles ADMIN y EMPLEADO pueden operar pedidos. El entorno continúa siendo local.
 - El Dashboard calcula indicadores sobre el estado **actual** de los pedidos, no ventas cobradas; no hay fechas de ventas ni auditoría de cambios.
@@ -133,6 +134,6 @@ No todos los cambios de estado están permitidos; consulta [docs/FLUJO_PEDIDOS.m
 6. Dashboard, catálogo e historial visual con pruebas de navegación (**completada**).
 7. Crear, editar y desactivar platillos sin romper pedidos históricos (**completada**).
 8. Spring Security, inicio y cierre de sesión, usuarios BCrypt, roles y CSRF (**completada**).
-9. Gestión de cuentas (**9A: alta/listado completada; 9B: estado de empleados, contraseñas y revocación en revisión**); auditoría y pruebas end-to-end (**pendientes**).
+9. Gestión de cuentas (**9A y 9B completadas**), auditoría de operaciones (**9C en revisión**) y pruebas end-to-end (**pendientes**).
 
 Para empezar consulta también [docs/WEB_SPRING_BOOT.md](docs/WEB_SPRING_BOOT.md) y [database/README.md](database/README.md).

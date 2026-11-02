@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="description" content="Registro de operaciones de Restaurante."/>
+  <title>Restaurante | Auditoría</title>
+  <link rel="stylesheet" th:href="@{/css/restaurante.css}" href="/css/restaurante.css"/>
+</head>
+<body><div class="app-shell">
+<aside th:replace="~{fragmentos/navegacion :: lateral('auditoria')}"></aside>
+<main class="main">
+<header th:replace="~{fragmentos/navegacion :: encabezado('Auditoría')}"></header>
+<div class="content">
+  <div class="page-heading"><div>
+    <p class="eyebrow">TRAZABILIDAD OPERATIVA</p>
+    <h1>Auditoría de operaciones</h1>
+    <p class="subtitle">Consulta las acciones registradas después de cambios exitosos en el sistema.</p>
+  </div><span class="live-indicator"><span></span> Solo administradores</span></div>
+  <div class="notice error" role="alert" th:if="${errorConexion}" th:text="${errorConexion}"></div>
+  <section class="stats" aria-label="Indicadores de auditoría">
+    <div class="stat"><span class="stat-label">Eventos registrados</span>
+      <strong th:text="${registro.total()}">0</strong>
+      <small>Solo acciones que se pudieron guardar en auditoría</small></div>
+    <div class="stat"><span class="stat-label">Página actual</span>
+      <strong th:text="${registro.numero() + 1}">1</strong><small>20 eventos por página</small></div>
+    <div class="stat"><span class="stat-label">Alcance</span>
+      <strong class="restricted-label">Operaciones</strong><small>Pedidos, catálogo y empleados</small></div>
+  </section>
+  <section class="panel orders-panel" aria-labelledby="titulo-auditoria">
+    <div class="panel-heading orders-heading"><div>
+      <p class="panel-kicker">BITÁCORA</p><h2 id="titulo-auditoria">Actividad reciente</h2>
+    </div></div>
+    <div class="table-scroller" th:unless="${registro.eventos().isEmpty()}">
+      <table class="audit-table"><thead><tr><th>ID</th><th>Fecha y hora (MySQL)</th>
+        <th>Usuario</th><th>Operación</th><th>Recurso</th><th>Referencia</th><th>Detalle</th>
+      </tr></thead><tbody>
+      <tr th:each="e : ${registro.eventos()}">
+        <td th:text="${e.id()}">1</td>
+        <td th:text="${#temporals.format(e.fecha(), 'yyyy-MM-dd HH:mm:ss')}">2026-01-01 00:00:00</td>
+        <td class="order-id" th:text="${e.actor()}">admin</td>
+        <td th:text="${e.accion()}">PEDIDO_CREADO</td>
+        <td th:text="${e.entidad()}">PEDIDO</td>
+        <td th:text="${e.referencia()}">1</td>
+        <td th:text="${e.detalle()}">PENDIENTE</td>
+      </tr></tbody></table>
+    </div>
+    <p class="empty" th:if="${registro.eventos().isEmpty() and errorConexion == null}">
+      Todavía no hay eventos registrados. Las operaciones anteriores a la fase 9C no se reconstruyen.
+    </p>
+    <div class="audit-pagination" th:if="${registro.anterior() or registro.siguiente()}">
+      <a class="btn btn-outline" th:if="${registro.anterior()}"
+         th:href="@{/auditoria(pagina=${registro.numero()-1})}">← Anterior</a>
+      <span th:text="${'Página ' + (registro.numero()+1)}">Página 1</span>
+      <a class="btn btn-outline" th:if="${registro.siguiente()}"
+         th:href="@{/auditoria(pagina=${registro.numero()+1})}">Siguiente →</a>
+    </div>
+  </section>
+  <p class="hint-text">Registro posterior a cada operación: no garantiza atomicidad con la operación principal.
+    Si MySQL no permite guardar la auditoría, la operación puede completarse sin evento; el servidor emitirá una advertencia.
+    No se registran contraseñas ni contenido de los formularios.</p>
+  <footer class="main-footer">Restaurante · Demo local · Auditoría operativa</footer>
+</div></main></div></body></html>

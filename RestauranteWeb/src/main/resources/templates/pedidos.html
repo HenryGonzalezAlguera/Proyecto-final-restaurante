@@ -22,6 +22,7 @@
                 <span class="live-indicator"><span></span> Vista de demostración</span>
             </div>
             <div role="alert" class="notice error" th:if="${errorConexion}" th:text="${errorConexion}"></div>
+            <div role="alert" class="notice warning" th:if="${advertenciaAuditoria}" th:text="${advertenciaAuditoria}"></div>
             <div role="status" class="notice success" th:if="${mensaje}" th:text="${mensaje}"></div>
             <div role="alert" class="notice error" th:if="${error}" th:text="${error}"></div>
             <section class="stats" aria-label="Resumen de pedidos">

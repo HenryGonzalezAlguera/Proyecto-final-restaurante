@@ -27,6 +27,7 @@ import org.springframework.test.web.servlet.MockMvc;
 class CatalogoAdminWebTest {
     @Autowired MockMvc mvc;
     @MockitoBean ServicioRestauranteWeb servicio;
+    @MockitoBean AuditoriaRestauranteService auditoria;
 
     @Test
     void nuevoPlatilloSeCreaConRedireccionYMensaje() throws Exception {
