@@ -1,6 +1,6 @@
 # Restaurante — Java, Spring Boot y MySQL
 
-Aplicación de demostración para portafolio que evolucionó desde una práctica de estructuras de datos hasta **cuatro pantallas web operativas** y **API REST local**, reutilizando el modelo de dominio original y la persistencia JDBC.
+Aplicación de demostración para portafolio que evolucionó desde una práctica de estructuras de datos hasta **cuatro pantallas web operativas**, **API REST local** y **seguridad por roles**, reutilizando el modelo de dominio original y la persistencia JDBC.
 
 > **Estado: prototipo local.** Sin autenticación, pagos, facturación ni datos reales. Por seguridad el servidor web se enlaza a `127.0.0.1` de forma predeterminada. **No exponer a Internet** sin incorporar seguridad, permisos y pruebas adicionales.
 
@@ -44,6 +44,10 @@ Las reglas de validación y transición se implementan una sola vez en el módul
 | MySQL 8 + JDBC | Persistencia de datos |
 | Maven | Compilación de los dos módulos |
 | JUnit 5, MockMvc y GitHub Actions | Pruebas unitarias, SQL y HTTP |
+
+## Seguridad y acceso
+
+Desde la fase 8 es obligatorio iniciar sesión para usar la aplicación. Se utiliza **Spring Security, BCrypt, roles ADMIN/EMPLEADO y protección CSRF**, sin contraseñas predeterminadas en el repositorio. Importa `database/04_usuarios_seguridad.sql` y crea la primera cuenta administrativa mediante variables de entorno según **[docs/SEGURIDAD.md](docs/SEGURIDAD.md)**. Sin cuentas creadas, el sistema permanece cerrado.
 
 ## Compilar y probar
 
@@ -107,9 +111,9 @@ No todos los cambios de estado están permitidos; consulta [docs/FLUJO_PEDIDOS.m
 
 ## Limitaciones y seguridad
 
-- Prototipo local **sin sistema de acceso** ni protección CSRF: no desplegarlo en un servidor público.
+- Prototipo local con **login, roles y CSRF**, aún sin HTTPS, mitigación de fuerza bruta ni auditoría: no desplegarlo en un servidor público.
 - El formulario web crea **un tipo de platillo por pedido**; la lógica Java y la API de repositorio ya admiten múltiples detalles y se ampliará la interfaz posteriormente.
-- Las operaciones de catálogo están disponibles solo en **entorno local**. Todavía no existe inicio de sesión, roles ni protección CSRF; no desplegar públicamente hasta corregirlo.
+- La edición del catálogo requiere **rol ADMIN**; los roles ADMIN y EMPLEADO pueden operar pedidos. El entorno continúa siendo local.
 - El Dashboard calcula indicadores sobre el estado **actual** de los pedidos, no ventas cobradas; no hay fechas de ventas ni auditoría de cambios.
 - El historial filtra en memoria para una demostración local: en bases voluminosas necesitará paginación y filtros SQL.
 - No hay caja, pagos, IVA, inventario, sesiones de usuario, facturación ni reservas.
@@ -126,6 +130,7 @@ No todos los cambios de estado están permitidos; consulta [docs/FLUJO_PEDIDOS.m
 5. Aplicación web de pedidos y API con Spring Boot (**completada**).
 6. Dashboard, catálogo e historial visual con pruebas de navegación (**fase actual**).
 7. Crear, editar y desactivar platillos sin romper pedidos históricos (**fase actual**).
-8. Seguridad, roles, CSRF, paginación, pruebas end-to-end y presentación final (**pendiente**).
+8. Spring Security, inicio y cierre de sesión, usuarios BCrypt, roles y CSRF (**fase actual**).
+9. Gestión de cuentas, auditoría, pruebas end-to-end y presentación final (**pendiente**).
 
 Para empezar consulta también [docs/WEB_SPRING_BOOT.md](docs/WEB_SPRING_BOOT.md) y [database/README.md](database/README.md).

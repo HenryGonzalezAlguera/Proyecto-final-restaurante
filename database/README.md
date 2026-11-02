@@ -67,3 +67,7 @@ Antes de importar, **respalda la base `restaurante_portafolio` y detén Spring B
 Después de esta migración, `restaurante_app` mantiene únicamente `SELECT, INSERT, UPDATE`: las acciones diarias del catálogo NO requieren `ALTER` ni `DELETE`. No hay borrado físico de platillos, para conservar la integridad de las claves foráneas.
 
 **Importante:** la aplicación aún no dispone de autenticación/autorización ni protección CSRF. Se mantiene enlazada a `127.0.0.1` para pruebas locales. No publiques los formularios de administración en Internet.
+
+## Fase 8 — cuentas de aplicación
+
+Desde la fase 8, importar también `database/04_usuarios_seguridad.sql` con el servidor detenido y crear usuarios de acceso con BCrypt mediante el bootstrap documentado en [docs/SEGURIDAD.md](../docs/SEGURIDAD.md). El usuario de MySQL `restaurante_app` sigue siendo una cuenta técnica, **no es un usuario de inicio de sesión web**.

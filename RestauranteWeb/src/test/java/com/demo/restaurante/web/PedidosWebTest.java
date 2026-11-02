@@ -15,6 +15,8 @@ import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.springframework.security.test.context.support.WithMockUser;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -24,6 +26,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@WithMockUser(roles = "ADMIN")
 class PedidosWebTest {
     @Autowired
     MockMvc mvc;
@@ -65,7 +68,7 @@ class PedidosWebTest {
     void validaCreacionDesdeFormulario() throws Exception {
         when(servicio.registrarPedido(5, 1, 2)).thenReturn(
                 new Pedido(10, 5, List.of(new DetallePedido(platillo(), 2))));
-        mvc.perform(post("/pedidos")
+        mvc.perform(post("/pedidos").with(csrf())
                 .param("clienteId", "5").param("platilloId", "1").param("cantidad", "2"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/pedidos"))
@@ -82,7 +85,7 @@ class PedidosWebTest {
                 .andExpect(jsonPath("$[0].nombre").value("Casado"));
         mvc.perform(get("/api/pedidos")).andExpect(status().isOk())
                 .andExpect(content().json("[]"));
-        mvc.perform(post("/api/pedidos").contentType(MediaType.APPLICATION_JSON)
+        mvc.perform(post("/api/pedidos").with(csrf()).contentType(MediaType.APPLICATION_JSON)
                 .content("{\"clienteId\":5,\"platilloId\":1,\"cantidad\":2}"))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(10))
@@ -91,7 +94,7 @@ class PedidosWebTest {
 
     @Test
     void apiRechazaEstadoFaltanteYExponeErrorControlado() throws Exception {
-        mvc.perform(post("/api/pedidos/1/estado")
+        mvc.perform(post("/api/pedidos/1/estado").with(csrf())
                 .contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("El estado es obligatorio."));
