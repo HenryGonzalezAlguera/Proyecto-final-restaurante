@@ -7,6 +7,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.access.intercept.AuthorizationFilter;
 
 /**
@@ -17,9 +18,12 @@ import org.springframework.security.web.access.intercept.AuthorizationFilter;
 @Configuration
 public class SeguridadRestauranteConfiguracion {
     private final UsuariosRestauranteService usuarios;
+    private final ControlIntentosLogin intentos;
 
-    public SeguridadRestauranteConfiguracion(UsuariosRestauranteService usuarios) {
+    public SeguridadRestauranteConfiguracion(UsuariosRestauranteService usuarios,
+                                              ControlIntentosLogin intentos) {
         this.usuarios = usuarios;
+        this.intentos = intentos;
     }
 
     @Bean
@@ -42,8 +46,14 @@ public class SeguridadRestauranteConfiguracion {
         http.formLogin(formulario -> formulario
                 .loginPage("/login")
                 .loginProcessingUrl("/login")
-                .defaultSuccessUrl("/dashboard", true)
-                .failureUrl("/login?error")
+                .successHandler((request, response, authentication) -> {
+                    intentos.limpiar(request.getRemoteAddr());
+                    response.sendRedirect(request.getContextPath() + "/dashboard");
+                })
+                .failureHandler((request, response, exception) -> {
+                    intentos.registrarFallo(request.getRemoteAddr());
+                    response.sendRedirect(request.getContextPath() + "/login?error");
+                })
                 .permitAll()
         );
         http.logout(salida -> salida
@@ -55,6 +65,8 @@ public class SeguridadRestauranteConfiguracion {
         );
         http.exceptionHandling(ex -> ex.accessDeniedPage("/acceso-denegado"));
         http.addFilterBefore(new VigenciaSesionRestauranteFiltro(usuarios), AuthorizationFilter.class);
+        http.addFilterBefore(new FiltroLimiteIntentosLogin(intentos),
+                UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 }
